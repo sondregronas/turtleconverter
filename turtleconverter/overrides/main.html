@@ -8,6 +8,11 @@
 
 {% block scripts %}
 {{ super() }}
+<script>
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.setAttribute('data-md-color-scheme', 'slate');
+    }
+</script>
 {% endblock scripts %}
 
 {% block content %}
