@@ -17,9 +17,16 @@ except ImportError:
     from mkdocs_build_override import MKDOCS_CONFIG, _build
 
 
+def _str_to_path_mass_convert(list_of_values: list) -> list:
+    """Converts a list of strings to a list of Path objects."""
+    return [Path(value) if isinstance(value, str) else value for value in list_of_values]
+
+
 def mdfile_to_html(md_file_path: Path, static_folder: Path = Path('static'),
-                   assets_folder: Path = 'turtleconvert', include_metadata: bool = False) -> str or tuple:
+                   assets_folder: Path = Path('turtleconvert'), include_metadata: bool = False) -> str or tuple:
     """Converts a markdown file to a html file."""
+    md_file_path, static_folder, assets_folder = _str_to_path_mass_convert([md_file_path, static_folder, assets_folder])
+
     page, meta = _build(md_file_path, static_folder / assets_folder, MKDOCS_CONFIG)
 
     # Replace the relative paths with the absolute paths
@@ -32,17 +39,16 @@ def mdfile_to_html(md_file_path: Path, static_folder: Path = Path('static'),
 
 
 def mdfile_to_sections(md_file_path: Path, static_folder: Path = Path('static'),
-                       assets_folder: Path = 'turtleconvert', isolate_heading: bool = True) -> dict:
+                       assets_folder: Path = Path('turtleconvert'), isolate_heading: bool = True) -> dict:
     """Returns a dictionary of HTML content divided into sections."""
+    md_file_path, static_folder, assets_folder = _str_to_path_mass_convert([md_file_path, static_folder, assets_folder])
+
     page, meta = mdfile_to_html(md_file_path, static_folder, assets_folder, include_metadata=True)
 
     regex = re.compile(r"<head.*?>(.*?)</head>.*?<body.*?>(.*?)</body>", re.DOTALL)
     results = regex.findall(page)
 
-    try:
-        h1_tag = re.search(r'<h1.*?\>(.+?)\<\/h1>', results[0][1]).group(1)
-    except AttributeError:
-        h1_tag = meta.get('title', 'Untitled')
+    h1_tag = meta.get('title', re.search(r'<h1.*?\>(.+?)\<\/h1>', results[0][1]).group(1))
 
     head = results[0][0]
     body = results[0][1]
@@ -60,7 +66,7 @@ def mdfile_to_sections(md_file_path: Path, static_folder: Path = Path('static'),
 
 if __name__ == '__main__':
     # Testing data, feel free to ignore this
-    print(mdfile_to_sections(Path('test.md')))
+    print(mdfile_to_sections('test.md'))
     data = mdfile_to_html(Path('test.md'))
     with open('static/test.html', 'w', encoding='utf-8') as f:
         f.write(data)
