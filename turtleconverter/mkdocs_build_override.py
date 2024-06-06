@@ -60,7 +60,7 @@ def _build_page(
         # Run `post_page` plugin events.
         output = config.plugins.on_post_page(output, page=page, config=config)
 
-        return output
+        return output, page.meta
 
     except Exception as e:
         message = f"Error building page '{page.file.src_uri}':"

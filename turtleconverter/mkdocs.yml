@@ -25,6 +25,7 @@ theme:
 
 markdown_extensions:
   # Essentials
+  - meta                        # Metadata
   - attr_list                   # Add HTML attributes to anything (![image](link) { align=left })
   - nl2br                       # All linebreaks add <br> tags (starts new line on new lines...)
   - mdx_breakless_lists         # single linebreak required for lists, instead of two

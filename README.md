@@ -15,9 +15,8 @@ pip install git+https://github.com/sondregronas/turtleconverter@main
 ```py
 from turtleconverter import mdfile_to_sections, mdfile_to_html
 
-
-def mdfile_to_html(md_file_path: Path, static_folder: Path = Path('static'),
-                   assets_folder: Path = 'turtleconvert') -> str:
+# def mdfile_to_html(md_file_path: Path, static_folder: Path = Path('static'),
+#                    assets_folder: Path = 'turtleconvert') -> str:
 
 
 # Convert markdown file to HTML
@@ -35,7 +34,8 @@ print(sections)
 # {
 #    "heading": "My Markdown File!",
 #    "head": "<Everything inside of the head tag>",
-#    "body": "<Everything inside of the body tag (excluding the heading)>"
+#    "body": "<Everything inside of the body tag (excluding the heading)>",
+#    "meta": { <All the metadata (frontmatter) from the markdown file as a dictionary> }
 # }
 # Also generates a static/turtleconvert/ folder with the necessary assets (javascripts, stylesheets, css)
 ```

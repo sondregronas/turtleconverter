@@ -1,11 +1,11 @@
 """
 Usage:
     mdfile_to_section = mdfile_to_sections(Path('test.md'), static_folder=Path('static'), assets_folder=Path('turtleconvert'))
-        This will return a dictionary of HTML content divided into sections (head and body), and the assets folder will be placed in the static folder.
-        (static/turtleconvert/javascripts and static/turtleconvert/stylesheets in this case)
+        This will return a dictionary of HTML content divided into sections (heading, head, body and meta), and the
+        assets folder will be placed in the static folder. (static/turtleconvert/javascripts | stylesheets in this case)
 
-    mdfile_to_html = mdfile_to_html(Path('test.md'), static_folder=Path('static'), assets_folder=Path('turtleconvert'))
-        Same as above, but will return the full HTML content as a string.
+    mdfile_to_html = mdfile_to_html(Path('test.md'), static_folder=Path('static'), assets_folder=Path('turtleconvert'), include_metadata: bool = False)
+        Same as above, but will return the full HTML content as a string. Returns a tuple with the metadata if include_metadata is True.
 """
 
 import re
@@ -18,21 +18,23 @@ except ImportError:
 
 
 def mdfile_to_html(md_file_path: Path, static_folder: Path = Path('static'),
-                   assets_folder: Path = 'turtleconvert') -> str:
+                   assets_folder: Path = 'turtleconvert', include_metadata: bool = False) -> str or tuple:
     """Converts a markdown file to a html file."""
-    page = _build(md_file_path, static_folder / assets_folder, MKDOCS_CONFIG)
+    page, meta = _build(md_file_path, static_folder / assets_folder, MKDOCS_CONFIG)
 
     # Replace the relative paths with the absolute paths
     page = page.replace('../assets/', f'../{static_folder}/{assets_folder}/')
     page = page.replace('../assets/', f'../{static_folder}/{assets_folder}/')
 
+    if include_metadata:
+        return page, meta
     return page
 
 
 def mdfile_to_sections(md_file_path: Path, static_folder: Path = Path('static'),
                        assets_folder: Path = 'turtleconvert', isolate_heading: bool = True) -> dict:
     """Returns a dictionary of HTML content divided into sections."""
-    page = mdfile_to_html(md_file_path, static_folder, assets_folder)
+    page, meta = mdfile_to_html(md_file_path, static_folder, assets_folder, include_metadata=True)
 
     regex = re.compile(r"<head.*?>(.*?)</head>.*?<body.*?>(.*?)</body>", re.DOTALL)
     results = regex.findall(page)
@@ -48,5 +50,14 @@ def mdfile_to_sections(md_file_path: Path, static_folder: Path = Path('static'),
     return {
         'heading': h1_tag,
         'head': head,
-        'body': body
+        'body': body,
+        'meta': meta
     }
+
+
+if __name__ == '__main__':
+    # Testing data, feel free to ignore this
+    print(mdfile_to_sections(Path('test.md')))
+    data = mdfile_to_html(Path('test.md'))
+    with open('static/test.html', 'w', encoding='utf-8') as f:
+        f.write(data)
