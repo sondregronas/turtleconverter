@@ -17,7 +17,6 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
     "Topic :: Documentation",
-    "Topic :: Software Development :: Documentation"
 ]
 
 dependencies = [

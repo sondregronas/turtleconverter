@@ -10,11 +10,11 @@ import mkdocs.config
 from mkdocs.commands.build import *
 from mkdocs.commands.build import _populate_page, _build_page, _build_extra_template
 
-if not os.path.exists('docs'):
-    os.makedirs('docs')
-MKDOCS_CONFIG = mkdocs.config.load_config("mkdocs.yml")
-if not os.listdir('docs'):
-    os.rmdir('docs')
+if not os.path.exists(Path(__file__).parent / 'docs'):
+    os.makedirs(Path(__file__).parent / 'docs')
+MKDOCS_CONFIG = mkdocs.config.load_config(str(Path(__file__).parent / 'mkdocs.yml'))
+if not os.listdir(Path(__file__).parent / 'docs'):
+    os.rmdir(Path(__file__).parent / 'docs')
 
 
 def _build_page(
