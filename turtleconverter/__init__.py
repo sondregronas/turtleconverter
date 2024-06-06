@@ -11,7 +11,10 @@ Usage:
 import re
 from pathlib import Path
 
-from .mkdocs_build_override import MKDOCS_CONFIG, _build
+try:
+    from .mkdocs_build_override import MKDOCS_CONFIG, _build
+except ImportError:
+    from mkdocs_build_override import MKDOCS_CONFIG, _build
 
 
 def mdfile_to_html(md_file_path: Path, static_folder: Path = Path('static'),
