@@ -30,3 +30,6 @@ dependencies = [
 
 [project.urls]
 homepage = "https://github.com/sondregronas/turtleconverter"
+
+[tool.setuptools.package-data]
+turtleconverter = ['overrides/', 'mkdocs.yml']
