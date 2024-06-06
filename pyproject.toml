@@ -26,7 +26,7 @@ dependencies = [
     "mkdocs-callouts",
     "mkdocs-minify-plugin",
     "mkdocs-glightbox",
-    "git+https://github.com/sondregronas/mdx-breakless-lists@master"
+    "mdx-breakless-lists@git+https://github.com/sondregronas/mdx-breakless-lists@master"
 ]
 
 [project.urls]
