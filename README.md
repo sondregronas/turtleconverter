@@ -46,3 +46,5 @@ file.
 ## Issues
 
 - Images require a workaround
+- The converter only allows for one markdown file at a time, which is a bit inefficient, but within the scope of the
+  project
