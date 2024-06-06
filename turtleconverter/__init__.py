@@ -30,8 +30,8 @@ def mdfile_to_html(md_file_path: Path, static_folder: Path = Path('static'),
     page, meta = _build(md_file_path, static_folder / assets_folder, MKDOCS_CONFIG)
 
     # Replace the relative paths with the absolute paths
-    page = page.replace('../assets/', f'../{static_folder}/{assets_folder}/')
-    page = page.replace('../assets/', f'../{static_folder}/{assets_folder}/')
+    page = page.replace('../assets/', f'/{static_folder}/{assets_folder}/')
+    page = page.replace('../assets/', f'/{static_folder}/{assets_folder}/')
 
     if include_metadata:
         return page, meta
