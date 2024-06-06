@@ -1,0 +1,6 @@
+mkdocs
+mkdocs-material
+mkdocs-callouts
+mkdocs-minify-plugin
+mkdocs-glightbox
+git+https://github.com/sondregronas/mdx-breakless-lists@master

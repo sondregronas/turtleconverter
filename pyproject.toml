@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "turtleconverter"
+version = "0.1.0"
+keywords = ["markdown", "mkdocs", "html", "converter", "jinja2"]
+description = "A slow and inefficient markdown to html converter using mkdocs"
+readme = "README.md"
+requires-python = ">=3.8"
+authors = [{ name = "Sondre Grønås" }]
+license = { text = "AGPL-3.0" }
+classifiers = [
+    "License :: OSI Approved :: AGPL-3.0",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Documentation",
+    "Topic :: Software Development :: Documentation"
+]
+
+dependencies = [
+    "mkdocs",
+    "mkdocs-material",
+    "mkdocs-callouts",
+    "mkdocs-minify-plugin",
+    "mkdocs-glightbox",
+    "git+https://github.com/sondregronas/mdx-breakless-lists@master"
+]
+
+[project.urls]
+homepage = "https://github.com/sondregronas/turtleconverter"

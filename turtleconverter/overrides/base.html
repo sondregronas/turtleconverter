@@ -1,0 +1,116 @@
+<html class="no-js">
+<head>
+    {% block site_meta %}
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    {% if page.meta and page.meta.description %}
+    <meta name="description" content="{{ page.meta.description }}">
+    {% elif config.site_description %}
+    <meta name="description" content="{{ config.site_description }}">
+    {% endif %}
+    {% if page.meta and page.meta.author %}
+    <meta name="author" content="{{ page.meta.author }}">
+    {% elif config.site_author %}
+    <meta name="author" content="{{ config.site_author }}">
+    {% endif %}
+    {% if page.canonical_url %}
+    <link rel="canonical" href="{{ page.canonical_url }}">
+    {% endif %}
+    {% if page.previous_page %}
+    <link rel="prev" href="{{ page.previous_page.url | url }}">
+    {% endif %}
+    {% if page.next_page %}
+    <link rel="next" href="{{ page.next_page.url | url }}">
+    {% endif %}
+    {% if "rss" in config.plugins %}
+    <link rel="alternate" type="application/rss+xml" title="{{ lang.t('rss.created') }}"
+          href="{{ 'feed_rss_created.xml' | url }}">
+    <link rel="alternate" type="application/rss+xml" title="{{ lang.t('rss.updated') }}"
+          href="{{ 'feed_rss_updated.xml' | url }}">
+    {% endif %}
+    <link rel="icon" href="{{ config.theme.favicon | url }}">
+    <meta name="generator" content="mkdocs-{{ mkdocs_version }}, mkdocs-material-9.5.26">
+    {% endblock %}
+    {% block htmltitle %}
+    {% if page.meta and page.meta.title %}
+    <title>{{ page.meta.title }} - {{ config.site_name }}</title>
+    {% elif page.title and not page.is_homepage %}
+    <title>{{ page.title | striptags }} - {{ config.site_name }}</title>
+    {% else %}
+    <title>{{ config.site_name }}</title>
+    {% endif %}
+    {% endblock %}
+    {% block styles %}
+    <link rel="stylesheet" href="{{ 'assets/stylesheets/main.6543a935.min.css' | url }}">
+    {% if config.theme.palette %}
+    {% set palette = config.theme.palette %}
+    <link rel="stylesheet" href="{{ 'assets/stylesheets/palette.06af60db.min.css' | url }}">
+    {% endif %}
+    {% include "partials/icons.html" %}
+    {% endblock %}
+    {% block libs %}
+    {% for script in config.extra.polyfills %}
+    {{ script | script_tag }}
+    {% endfor %}
+    {% endblock %}
+    {% block fonts %}
+    {% if config.theme.font != false %}
+    {% set text = config.theme.font.get("text", "Roboto") %}
+    {% set code = config.theme.font.get("code", "Roboto Mono") %}
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family={{ text | replace(' ', '+') + ':300,300i,400,400i,700,700i%7C' +
+            code | replace(' ', '+') + ':400,400i,700,700i' }}&display=fallback">
+    <style>:root {
+        --md-text-font: "{{ text }}";
+        --md-code-font: "{{ code }}"
+    }</style>
+    {% endif %}
+    {% endblock %}
+    {% for path in config.extra_css %}
+    <link rel="stylesheet" href="{{ path | url }}">
+    {% endfor %}
+    {% include "partials/javascripts/base.html" %}
+    {% block analytics %}
+    {% include "partials/integrations/analytics.html" %}
+    {% endblock %}
+    {% if page.meta and page.meta.meta %}
+    {% for tag in page.meta.meta %}
+    <meta {% for key, value in tag.items() %} {{ key }}="{{ value }}" {% endfor %}>
+    {% endfor %}
+    {% endif %}
+    {% block extrahead %}{% endblock %}
+</head>
+
+
+{% set palette = config.theme.palette %}
+{% if not palette is mapping %}
+{% set palette = palette | first %}
+{% endif %}
+{% set scheme = palette.scheme | d("default", true) %}
+{% set primary = palette.primary | d("indigo", true) %}
+{% set accent = palette.accent | d("indigo", true) %}
+<body data-md-color-scheme="{{ scheme | replace(' ', '-') }}" data-md-color-primary="{{ primary | replace(' ', '-') }}"
+      data-md-color-accent="{{ accent | replace(' ', '-') }}">
+
+{% include "partials/javascripts/palette.html" %}
+
+{% block container %}
+<div class="md-content" data-md-component="content" dir="ltr">
+    <article class="md-content__inner md-typeset">
+        {% block content %}
+        {% include "partials/content.html" %}
+        {% endblock %}
+    </article>
+</div>
+{% endblock %}
+
+{% include "partials/javascripts/content.html" %}
+
+{% block scripts %}
+<script src="{{ 'assets/javascripts/bundle.ad660dcc.min.js' | url }}"></script>
+{% for script in config.extra_javascript %}
+{{ script | script_tag }}
+{% endfor %}
+{% endblock %}
+</body>
+</html>

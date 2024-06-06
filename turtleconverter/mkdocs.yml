@@ -1,0 +1,72 @@
+site_name: 'TurtleConverter'
+
+theme:
+  name: material
+  custom_dir: overrides
+  palette: # Light/Dark Mode
+    - media: "(prefers-color-scheme: light)"  # Light mode
+      scheme: default
+      primary: indigo
+      accent: blue
+      toggle:
+        icon: material/toggle-switch
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"  # Dark mode
+      scheme: slate
+      primary: indigo
+      accent: blue
+      toggle:
+        icon: material/toggle-switch-off-outline
+        name: Light mode
+
+  features:
+    - content.code.annotate     # Add annotations to codeblocks (```code (1)``` 1. annotation)
+    - navigation.prune          # Performance / size optimization
+
+markdown_extensions:
+  # Essentials
+  - attr_list                   # Add HTML attributes to anything (![image](link) { align=left })
+  - nl2br                       # All linebreaks add <br> tags (starts new line on new lines...)
+  - mdx_breakless_lists         # single linebreak required for lists, instead of two
+  - pymdownx.magiclink          # Automatically wrap links to <a> tags https://google.com = <a href="https://google.com">https://google.com</a>
+
+  # Features
+  - footnotes                   # Citations (Zotero/Pandoc) ([^1], [^1]: Lorem ipsum)
+  - admonition                  # Callout blocks > [!INFO], > [!WARNING], > [!VIDEO], > [!TECH], > [!CODE] (alt: !!! type)
+  - pymdownx.details            # https://squidfunk.github.io/mkdocs-material/reference/admonitions/#configuration
+  - pymdownx.tasklist: # - [ ] Task, - [x] Task completed
+      custom_checkbox: true         # https://squidfunk.github.io/mkdocs-material/reference/lists/#using-definition-lists
+
+  # Code highlighting
+  - pymdownx.superfences        # Code higlighting ```language\n code\n ```
+  - pymdownx.highlight: # Syntax highlighting + superfences
+      linenums: true                # numbered lines
+      anchor_linenums: true         # generate anchor links to line number
+  - pymdownx.inlinehilite       # Inline code highlighting
+  # Math / Formulas
+
+  - pymdownx.arithmatex: # Mathematical formulas $f(a)=f(b)$ $5*2=10$
+      generic: true             # Clean formatting for non-MathJax libraries
+
+  # ^~= modifiers
+  - pymdownx.caret              # ^^underline^^, ^superscript^ (H^2^O)
+  - pymdownx.tilde              # ~~strikethrough~~, ~subscript~ (~2~OH)
+  - pymdownx.mark               # ==mark text== (yellow marker)
+  - pymdownx.betterem: # **bold** *italic*, __bold__ _italic_
+      smart_enable: all             # Both modifiers (* and _)
+
+  # Extra
+  - pymdownx.keys               # ++ctrl+alt+delete++
+  - pymdownx.smartsymbols       # Convert special characters from markdown ((tm) = ™)
+  - smarty                      # '' -> ‘’, "" -> “”, etc..
+  - pymdownx.emoji: # Emojis :smile: :tada:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+plugins:
+  - callouts
+  - minify:
+      minify_html: true
+      minify_js: true
+      minify_css: true
+  - glightbox
