@@ -34,12 +34,13 @@ def mdfile_to_sections(md_file_path: Path, static_folder: Path = Path('static'),
     regex = re.compile(r"<head.*?>(.*?)</head>.*?<body.*?>(.*?)</body>", re.DOTALL)
     results = regex.findall(page)
 
-    h1_tag = re.search(r'<h1.*?\>(.*)<\/h1>', page).group(1)
+    h1_tag = re.search(r'<h1.+?\>(.+?)\<\/h1>', results[0][1]).group(1)
+
     head = results[0][0]
     body = results[0][1]
 
     if isolate_heading:
-        body = re.sub(r'<h1.*\>.*\<\/h1>', '', body)
+        body = re.sub(r'<h1.+?\>(.+?)\<\/h1>', '', body, count=1)
 
     return {
         'heading': h1_tag,
