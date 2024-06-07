@@ -1,8 +1,8 @@
-# TurtleConverter
+# 🐢 TurtleConverter 🐢
 
-A slow and inefficient converter for markdown to HTML. This is a very hacky way to use mkdocs to convert markdown files
-to HTML. It works by overriding the `_build` function of mkdocs to hook in a markdown file, and then extract the HTML
-from said markdown file.
+A slow and inefficient converter for markdown to HTML. This is a very hacky way to use [mkdocs](https://www.mkdocs.org/) to convert markdown files
+to HTML. It works by overriding the `_build` function of mkdocs to hook in a markdown file to then extract the HTML
+from said markdown file. The header, nav and footer is omitted from the output.
 
 ## Installation
 
@@ -44,29 +44,32 @@ print(sections)
 # Also generates a static/turtleconvert/ folder with the necessary assets (javascripts, stylesheets, css)
 ```
 
-Sections is useful if you want to include the markdown file in a template, and want to separate the head and body of the
-file.
+Sections is useful if you want to include the markdown file in a template, and want to separate the head 
+and body of the file.
 
-## Custom Template for the results
+## Overrides folder
 
-Feel free to change the `overrides` folder or `mkdocs.yml` file to customize the template - you can add as many mkdocs
-plugins as you want, as long as they are added to the pyproject.toml file before installing the package. Note: the
-colors are defined in `overrides/turtleconvert.html`.
+Feel free to fork & change the `overrides` folder or `mkdocs.yml` file to customize the template - you 
+can add as many mkdocs plugins as you want, as long as they are added to the pyproject.toml file before 
+installing the package.
 
-Optionally you can also pass a custom template to the `mdfile_to_html` and `mdfile_to_sections` functions.
+Note: the colors are defined in `overrides/turtleconvert.html`.
+
+## Custom Template for HTML rendering
+
+You may also pass a custom template to the renderer by passing them to the function as an argument like so:
 
 ```py
 html = mdfile_to_html("test.md", template="custom_template.html")  # alternatively you can use a Path object
 ```
 
-[example_override.html](example_override.html) is an example of a custom template that can be used during conversion,
-though creating your own with jinja2 using the `mdfile_to_sections` function is the intended use. Note that mkdocs will
-always generate a h1 tag with the title of the markdown file, so you should not include a h1 tag in your custom
-template.
+[example_override.html](example_override.html) is an example of a custom template that can be used during 
+conversion, **<ins>though creating your own with jinja2 using the results from `mdfile_to_sections()` is 
+the projects intended usecase</ins>**. Note that mkdocs will always generate a h1 tag with the title of 
+the markdown file, so you should not include a h1 tag in your custom template.
 
 ## Issues
 
-- Images might require a workaround - they will be relative to the markdown file, and not in a static folder as they may
-  need to be - **this script does not move/copy any images!!**
-- The converter only allows for one markdown file at a time, which is a bit inefficient, but within the scope of the
-  project
+- Image paths remain relative to the markdown file - **this script does not move/copy any images!!**
+- The converter only allows for one markdown file at a time, which is a _bit_ inefficient (but within
+the scope of the project)
