@@ -1,0 +1,22 @@
+{% extends "turtleconvert.html" %}
+
+{% block head %}
+<title>Example Override pre-content</title>
+<meta name="before-content" content="This is before the content">
+{{ super() }}
+<meta name="after-content" content="This is after the content">
+{% endblock %}
+
+{% block header %}
+<h3>Header</h3>
+{% endblock %}
+
+{% block content %}
+<h4>I'm before the content</h4>
+{{ super() }}
+<h4>I'm after the content</h4>
+{% endblock %}
+
+{% block footer %}
+<h3>Footer</h3>
+{% endblock %}

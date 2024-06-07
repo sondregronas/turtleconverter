@@ -1,0 +1,33 @@
+{% extends "base-turtleconvert.html" %}
+
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href="../assets/css/extra.css">
+<link rel="stylesheet" href="../assets/css/callouts.css">
+{% endblock %}
+
+{% block header %}
+{% endblock %}
+
+{% block content %}
+<script>
+    function setTheme() {
+        let map = {
+            'dark': 'slate',
+            'light': 'default'
+        };
+        document.body.setAttribute('data-md-color-primary', 'indigo');
+        document.body.setAttribute('data-md-color-accent', 'blue');
+        document.body.setAttribute('data-md-color-scheme', map[window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light']);
+    }
+
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+        setTheme();
+    });
+    setTheme();
+</script>
+{{ super() }}
+{% endblock %}
+
+{% block footer %}
+{% endblock %}

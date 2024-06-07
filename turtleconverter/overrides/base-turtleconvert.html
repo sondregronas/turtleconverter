@@ -1,0 +1,63 @@
+<html class="no-js">
+<head>
+    {% block head %}
+    {% block site_meta %}
+    <meta name="generator" content="mkdocs-{{ mkdocs_version }}, mkdocs-material-9.5.26">
+    {% endblock %}
+
+    {% block styles %}
+    <link rel="stylesheet" href="{{ 'assets/stylesheets/main.6543a935.min.css' | url }}">
+    {% if config.theme.palette %}
+    {% set palette = config.theme.palette %}
+    <link rel="stylesheet" href="{{ 'assets/stylesheets/palette.06af60db.min.css' | url }}">
+    {% endif %}
+
+    {% include "partials/icons.html" %}
+    {% endblock %}
+    {% block libs %}
+    {% for script in config.extra.polyfills %}
+    {{ script | script_tag }}
+    {% endfor %}
+    {% endblock %}
+    {% block fonts %}
+    {% if config.theme.font != false %}
+    {% set text = config.theme.font.get("text", "Roboto") %}
+    {% set code = config.theme.font.get("code", "Roboto Mono") %}
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family={{ text | replace(' ', '+') + ':300,300i,400,400i,700,700i%7C' +
+            code | replace(' ', '+') + ':400,400i,700,700i' }}&display=fallback">
+    <style>:root {
+        --md-text-font: "{{ text }}";
+        --md-code-font: "{{ code }}"
+    }</style>
+    {% endif %}
+    {% endblock %}
+
+    {% include "partials/javascripts/base.html" %}
+    {% endblock %}
+    {% block extrahead %}{% endblock %}
+</head>
+<body>
+{% block header %}
+{% endblock %}
+
+{% block container %}
+<div class="md-content" data-md-component="content" dir="ltr">
+    <article class="md-content__inner md-typeset">
+        {% block content %}
+        {% include "partials/content.html" %}
+        {% endblock %}
+    </article>
+</div>
+{% endblock %}
+
+{% block footer %}
+{% endblock %}
+
+{% include "partials/javascripts/content.html" %}
+
+{% block scripts %}
+<script src="{{ 'assets/javascripts/bundle.ad660dcc.min.js' | url }}"></script>
+{% endblock %}
+</body>
+</html>

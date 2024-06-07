@@ -8,7 +8,7 @@ from pathlib import Path
 
 import mkdocs.config
 from mkdocs.commands.build import *
-from mkdocs.commands.build import _populate_page, _build_page, _build_extra_template
+from mkdocs.commands.build import _build_page, _build_extra_template, _populate_page
 
 if not os.path.exists(Path(__file__).parent / 'docs'):
     os.makedirs(Path(__file__).parent / 'docs')
@@ -23,17 +23,11 @@ def _build_page(
         doc_files: Sequence[File],
         nav: Navigation,
         env: jinja2.Environment,
-        dirty: bool = False,
-        excluded: bool = False,
-) -> None:
+        template: str = 'turtleconvert.html',
+) -> tuple[str, dict]:
     """Pass a Page to theme template and write output to site_dir."""
     config._current_page = page
     try:
-        # When --dirty is used, only build the page if the file has been modified since the
-        # previous build of the output.
-        if dirty and not page.file.is_modified():
-            return
-
         log.debug(f"Building page {page.file.src_uri}")
 
         # Activate page. Signals to theme that this is the current page.
@@ -41,18 +35,20 @@ def _build_page(
 
         context = get_context(nav, doc_files, config, page)
 
-        # Allow 'template:' override in md source files.
-        template = env.get_template(page.meta.get('template', 'main.html'))
+        if template != 'turtleconvert.html':
+            if not isinstance(template, Path):
+                template = Path(template)
+            # The path must be absolute from the cwd.
+            template_path = template.resolve()
+            # Write a file to the overrides folder called "custom_template.html" with the contents of the custom template
+            with open(Path(__file__).parent / 'overrides' / 'custom_template.html', 'w+') as f:
+                f.write(template_path.read_text())
+            template = env.get_template('custom_template.html')
+        else:
+            template = env.get_template('turtleconvert.html')
 
         # Run `page_context` plugin events.
         context = config.plugins.on_page_context(context, page=page, config=config, nav=nav)
-
-        if excluded:
-            page.content = (
-                    '<div class="mkdocs-draft-marker" title="This page will not be included into the built site.">'
-                    'DRAFT'
-                    '</div>' + (page.content or '')
-            )
 
         # Render the template.
         output = template.render(context)
@@ -69,14 +65,10 @@ def _build_page(
             message += f" {e}"
         log.error(message)
         raise
-    finally:
-        # Deactivate page
-        page.active = False
-        config._current_page = None
 
 
 def _build(fp: Path, static_folder: Path = 'static', config: MkDocsConfig = MKDOCS_CONFIG, *,
-           serve_url: str | None = None, dirty: bool = False) -> str:
+           template: str = 'turtleconvert.html') -> tuple[str, dict]:
     """Perform a full site build."""
     logger = logging.getLogger('mkdocs')
 
@@ -86,11 +78,9 @@ def _build(fp: Path, static_folder: Path = 'static', config: MkDocsConfig = MKDO
     if config.strict:
         logging.getLogger('mkdocs').addHandler(warning_counter)
 
-    inclusion = InclusionLevel.is_in_serve if serve_url else InclusionLevel.is_included
+    inclusion = InclusionLevel.is_included
 
     try:
-        # start = time.monotonic()
-
         # Run `config` plugin events.
         config = config.plugins.on_config(config)
 
@@ -99,20 +89,7 @@ def _build(fp: Path, static_folder: Path = 'static', config: MkDocsConfig = MKDO
         # Run `pre_build` plugin events.
         config.plugins.on_pre_build(config=config)
 
-        if not dirty:
-            log.info("Cleaning site directory")
-            utils.clean_directory(config.site_dir)
-        else:  # pragma: no cover
-            # Warn user about problems that may occur with --dirty option
-            log.warning(
-                "A 'dirty' build is being performed, this will likely lead to inaccurate navigation and other"
-                " links within your site. This option is designed for site development purposes only."
-            )
-
-        if not serve_url:  # pragma: no cover
-            log.info(f"Building documentation to directory: {config.site_dir}")
-            if dirty and site_directory_contains_stale_files(config.site_dir):
-                log.info("The directory contains stale files. Use --clean to remove them.")
+        utils.clean_directory(config.site_dir)
 
         # First gather all data from all files/pages to ensure all data is consistent across all pages.
         files = get_files(config)
@@ -137,20 +114,11 @@ def _build(fp: Path, static_folder: Path = 'static', config: MkDocsConfig = MKDO
         nav = config.plugins.on_nav(nav, config=config, files=files)
 
         log.debug("Reading markdown pages.")
-        excluded = []
         for file in files.documentation_pages(inclusion=inclusion):
             log.debug(f"Reading: {file.src_uri}")
-            if serve_url and file.inclusion.is_excluded():
-                excluded.append(urljoin(serve_url, file.url))
             Page(None, file, config)
             assert file.page is not None
-            mkdocs.commands.build._populate_page(file.page, config, files, dirty)
-        if excluded:
-            log.info(
-                "The following pages are being built only for the preview "
-                "but will be excluded from `mkdocs build` per `draft_docs` config:\n  - "
-                + "\n  - ".join(excluded)
-            )
+            _populate_page(file.page, config, files)
 
         # Run `env` plugin events.
         env = config.plugins.on_env(env, config=config, files=files)
@@ -163,7 +131,7 @@ def _build(fp: Path, static_folder: Path = 'static', config: MkDocsConfig = MKDO
                 file.inclusion = InclusionLevel.EXCLUDED
             file.dest_uri = file.dest_uri.replace('assets/', '')
 
-        files.copy_static_files(dirty=dirty, inclusion=inclusion)
+        files.copy_static_files(dirty=False, inclusion=inclusion)
 
         # Generates sitemap and 404, etc.
         # for template in config.theme.static_templates:
@@ -176,7 +144,7 @@ def _build(fp: Path, static_folder: Path = 'static', config: MkDocsConfig = MKDO
         assert doc_files[0].page is not None
 
         return _build_page(
-            doc_files[0].page, config, doc_files, nav, env, dirty, excluded=file.inclusion.is_excluded()
+            doc_files[0].page, config, doc_files, nav, env, template=template
         )
 
     except Exception as e:
