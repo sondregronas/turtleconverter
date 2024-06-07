@@ -56,15 +56,13 @@ colors are defined in `overrides/turtleconvert.html`.
 Optionally you can also pass a custom template to the `mdfile_to_html` and `mdfile_to_sections` functions.
 
 ```py
-html = mdfile_to_html("test.md", template="custom_template.html")  # alternatively a Path object
+html = mdfile_to_html("test.md", template="custom_template.html")  # alternatively you can use a Path object
 ```
 
 [example_override.html](example_override.html) is an example of a custom template that can be used during conversion,
 though creating your own with jinja2 using the `mdfile_to_sections` function is the intended use. Note that mkdocs will
 always generate a h1 tag with the title of the markdown file, so you should not include a h1 tag in your custom
 template.
-
-# Convert markdown file to HTML
 
 ## Issues
 
