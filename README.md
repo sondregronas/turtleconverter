@@ -38,7 +38,7 @@ print(sections)
 # {
 #    "heading": "My Markdown File!",
 #    "head": "<Everything inside of the head tag>",
-#    "body": "<Everything inside of the body tag (excluding the heading)>",
+#    "body": "<Everything inside of the body tag (excluding the heading unless isolate_heading=False)>",
 #    "meta": { <All the metadata (frontmatter) from the markdown file as a dictionary> }
 # }
 # Also generates a static/turtleconvert/ folder with the necessary assets (javascripts, stylesheets, css)
