@@ -5,8 +5,6 @@
 {% endblock %}
 
 {% block styles %}
-    <link rel="stylesheet" href="../assets/css/extra.css">
-    <link rel="stylesheet" href="../assets/css/callouts.css">
     {{ super() }}
 {% endblock %}
 
@@ -15,27 +13,13 @@
 {% endblock %}
 
 {% block header %}
+    {{ super() }}
 {% endblock %}
 
 {% block content %}
-<script>
-    function setTheme() {
-        let map = {
-            'dark': 'slate',
-            'light': 'default'
-        };
-        document.body.setAttribute('data-md-color-primary', 'blue');
-        document.body.setAttribute('data-md-color-accent', 'blue');
-        document.body.setAttribute('data-md-color-scheme', map[window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light']);
-    }
-
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
-        setTheme();
-    });
-    setTheme();
-</script>
-{{ super() }}
+    {{ super() }}
 {% endblock %}
 
 {% block footer %}
+    {{ super() }}
 {% endblock %}

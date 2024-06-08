@@ -43,14 +43,14 @@
 {% block site_nav %}{% endblock %}
 
 {% block container %}
-<div data-md-component="header">
-    <div class="md-content" data-md-component="content" dir="ltr">
-        <article class="md-content__inner md-typeset">
-            {% block content %}
-                {{ super() }}
-            {% endblock %}
-        </article>
-    </div>
+    <div data-md-component="header">
+        <div class="md-content" data-md-component="content" dir="ltr">
+            <article class="md-content__inner md-typeset">
+                {% block content %}
+                    {{ super() }}
+                {% endblock %}
+            </article>
+        </div>
     </div>
 {% endblock %}
 
@@ -66,6 +66,22 @@
 
 {% block scripts %}
     {{ super() }}
+    <script>
+        function setTheme() {
+            let map = {
+                'dark': 'slate',
+                'light': 'default'
+            };
+            document.body.setAttribute('data-md-color-primary', 'blue');
+            document.body.setAttribute('data-md-color-accent', 'blue');
+            document.body.setAttribute('data-md-color-scheme', map[window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light']);
+        }
+
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+            setTheme();
+        });
+        setTheme();
+    </script>
 {% endblock %}
 </body>
 </html>

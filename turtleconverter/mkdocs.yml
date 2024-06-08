@@ -72,3 +72,5 @@ extra_javascript:
 
 extra_css:
   - assets/stylesheets/katex.min.css
+  - assets/stylesheets/extra.css
+  - assets/stylesheets/callouts.css
