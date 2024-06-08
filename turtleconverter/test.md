@@ -9,7 +9,7 @@ example_metadata: I'm metadata specified inside a markdown file!
 # Example Document
 Automatically generated document using [turtleconverter](https://github.com/sondregronas/turtleconverter/tree/main/turtleconverter)
 
-This document is generated from this markdown file: https://github.com/sondregronas/turtleconverter/blob/main/turtleconverter/test.md
+This document is generated from this markdown file: https://github.com/sondregronas/turtleconverter/blob/main/turtleconverter/test.md (Note that the [example templating file](https://github.com/sondregronas/turtleconverter/blob/main/example_override.html) is also used, hence the weird header and footer)
 
 ## Heading 1
 
