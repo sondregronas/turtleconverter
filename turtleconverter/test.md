@@ -54,6 +54,28 @@ Alternatively just provide the link: https://www.youtube.com/watch?v=dQw4w9WgXcQ
 | col 2 is      |   centered    |   $12 |
 | zebra stripes |   are neat    |    $1 |
 
+## Math
+
+Math is supported using LaTeX syntax:
+
+Inline math: $f(a)=f(b)$ $5*2=10$
+
+Block math:
+
+$$
+\int_{a}^{b} x^2 dx
+$$
+
+Also KaTeX is supported:
+
+$$
+\begin{aligned}
+\dot{x} & = \sigma(y-x) \\
+\dot{y} & = \rho x - y - xz \\
+\dot{z} & = -\beta z + xy
+\end{aligned}
+$$
+
 ## Lists
 
 - Unordered lists are supported
