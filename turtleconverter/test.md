@@ -7,7 +7,7 @@ example_metadata: I'm metadata specified inside a markdown file!
 ---
 
 # Example Document
-Automatically generated document using [turtleconverter](https://github.com/sondregronas/turtleconverter/tree/main/turtleconverter)
+Automatically generated document using [turtleconverter](https://github.com/sondregronas/turtleconverter)
 
 This document is generated from this markdown file: https://github.com/sondregronas/turtleconverter/blob/main/turtleconverter/test.md (Note that the [example templating file](https://github.com/sondregronas/turtleconverter/blob/main/example_override.html) is also used, hence the weird header and footer)
 
@@ -106,4 +106,4 @@ External images however will work just fine:
 
 ## Where can I get this inefficient and slow converter?
 
-See the [GitHub page](https://github.com/sondregronas/turtleconverter/tree/main/turtleconverter) for more information.
+See the [GitHub page](https://github.com/sondregronas/turtleconverter) for more information.
