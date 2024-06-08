@@ -32,7 +32,7 @@ print("Hello, World!") # (1)
 
 > [!TIP] You can add as many callouts as you want!
 
-> [!WARNING]- Foldable or not, just like regular markdown!
+> [!WARNING]- Foldable callouts, either using Obsidians syntax, or mkdocs's
 > There's more information below!
 
 
