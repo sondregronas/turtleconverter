@@ -8,7 +8,6 @@ concurrency:
   group: "pages"
   cancel-in-progress: true
 
-
 jobs:
   pages:
     runs-on: ubuntu-latest
@@ -36,7 +35,9 @@ jobs:
 
       - name: Create demo
         run: |
-          python ./turtleconverter/__init__.py
+          cd ./turtleconverter
+          python ./__init__.py
+          cd ..
           mkdir ./site
           mv ./turtleconverter/static ./site
           echo "<meta http-equiv='refresh' content='0; url=static/test.html'>" > ./site/index.html
