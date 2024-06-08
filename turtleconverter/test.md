@@ -58,15 +58,13 @@ Alternatively just provide the link: https://www.youtube.com/watch?v=dQw4w9WgXcQ
 
 Math is supported using LaTeX syntax:
 
-Inline math: $f(a)=f(b)$ $5*2=10$
-
-Block math:
+$f(a)=f(b)$ $5*2=10$
 
 $$
 \int_{a}^{b} x^2 dx
 $$
 
-Also KaTeX is supported:
+KaTeX is also supported:
 
 $$
 \begin{aligned}
