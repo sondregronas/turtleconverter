@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+<html class="no-js">
+<head>
+        {% block site_meta %}
+            {% block leadinghead %} {% endblock %}
+            <meta name="generator" content="mkdocs-{{ mkdocs_version }}, mkdocs-material-9.5.26">
+
+        {% endblock %}
+
+        {% block htmltitle %}{% endblock %}
+
+        {% block styles %}
+            {{ super() }}
+        {% endblock %}
+
+        {% block libs %}
+            {{ super() }}
+        {% endblock %}
+
+        {% block fonts %}
+            {{ super() }}
+        {% endblock %}
+
+        {% include "partials/javascripts/base.html" %}
+
+        {% block analytics %}{% endblock %}
+
+        {% block extrahead %}
+            {{ super() }}
+        {% endblock %}
+</head>
+<body>
+
+{% block header %}
+
+{% endblock %}
+
+
+{% block tabs %}
+{% endblock %}
+
+{% block site_nav %}{% endblock %}
+
+{% block container %}
+<div data-md-component="header">
+    <div class="md-content" data-md-component="content" dir="ltr">
+        <article class="md-content__inner md-typeset">
+            {% block content %}
+                {{ super() }}
+            {% endblock %}
+        </article>
+    </div>
+    </div>
+{% endblock %}
+
+{% block config %}
+
+{{ super() }}
+{% endblock %}
+
+{% include "partials/javascripts/content.html" %}
+
+{% block footer %}
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+{% endblock %}
+</body>
+</html>

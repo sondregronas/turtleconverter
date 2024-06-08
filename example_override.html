@@ -1,22 +1,40 @@
 {% extends "turtleconvert.html" %}
 
-{% block head %}
-<title>Example Override pre-content</title>
-<meta name="before-content" content="This is before the content">
-{{ super() }}
-<meta name="after-content" content="This is after the content">
+{% block leadinghead %}
+    <title>Example Override pre-head</title>
+    <meta name="before-content" content="This is before the head">
+    {{ super() }}
+{% endblock %}
+
+{% block extrahead %}
+    {{ super() }}
+    <meta name="after-content" content="This is after the head">
 {% endblock %}
 
 {% block header %}
-<h3>Header</h3>
+<div style="margin: auto; padding-top: 1rem; text-align: center;">
+
+    <h3>Header</h3>
+
+    {% if page.meta.example_metadata %}
+    <p style="background-color: grey; width: fit-content; padding:10px; margin-inline: auto;">Metadata object: {{ page.meta.example_metadata
+        }}</p>
+    {% endif %}
+
+    <code style="background-color: grey; width: fit-content; padding:10px; margin-inline: auto;">
+        # Note: Metadata can be accessed via the `page.meta` object. (&#123;&#123; page.meta.title &#125;&#125;)
+    </code>
+</div>
 {% endblock %}
 
 {% block content %}
-<h4>I'm before the content</h4>
-{{ super() }}
-<h4>I'm after the content</h4>
+    <h4>I'm before the content</h4>
+    {{ super() }}
+    <h4>I'm after the content</h4>
 {% endblock %}
 
 {% block footer %}
-<h3>Footer</h3>
+<div style="margin: auto; padding-bottom: 1rem; text-align: center;">
+    <h3>Footer</h3>
+</div>
 {% endblock %}

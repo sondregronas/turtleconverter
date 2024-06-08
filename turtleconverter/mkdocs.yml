@@ -6,10 +6,9 @@ theme:
   palette: # Light/Dark Mode
     - media: "(prefers-color-scheme: light)"  # Light mode
     - media: "(prefers-color-scheme: dark)"  # Dark mode
-
   features:
     - content.code.annotate     # Add annotations to codeblocks (```code (1)``` 1. annotation)
-    - navigation.prune          # Performance / size optimization
+    - content.code.copy
 
 markdown_extensions:
   # Essentials
@@ -23,6 +22,7 @@ markdown_extensions:
   - footnotes                   # Citations (Zotero/Pandoc) ([^1], [^1]: Lorem ipsum)
   - admonition                  # Callout blocks > [!INFO], > [!WARNING], > [!VIDEO], > [!TECH], > [!CODE] (alt: !!! type)
   - pymdownx.details            # https://squidfunk.github.io/mkdocs-material/reference/admonitions/#configuration
+  - def_list                    # Definition lists (term: definition)
   - pymdownx.tasklist: # - [ ] Task, - [x] Task completed
       custom_checkbox: true         # https://squidfunk.github.io/mkdocs-material/reference/lists/#using-definition-lists
 
@@ -31,7 +31,10 @@ markdown_extensions:
   - pymdownx.highlight: # Syntax highlighting + superfences
       linenums: false                # numbered lines
       anchor_linenums: false         # generate anchor links to line number
+      line_spans: __span            # line span
+      pygments_lang_class: true      # add class to code block for language
   - pymdownx.inlinehilite       # Inline code highlighting
+  - pymdownx.snippets
   # Math / Formulas
 
   - pymdownx.arithmatex: # Mathematical formulas $f(a)=f(b)$ $5*2=10$

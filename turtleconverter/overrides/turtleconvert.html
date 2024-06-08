@@ -1,9 +1,17 @@
-{% extends "base-turtleconvert.html" %}
+{% extends "base_turtleconvert.html" %}
 
-{% block head %}
-{{ super() }}
-<link rel="stylesheet" href="../assets/css/extra.css">
-<link rel="stylesheet" href="../assets/css/callouts.css">
+{% block leadinghead %}
+    {{ super() }}
+{% endblock %}
+
+{% block styles %}
+    <link rel="stylesheet" href="../assets/css/extra.css">
+    <link rel="stylesheet" href="../assets/css/callouts.css">
+    {{ super() }}
+{% endblock %}
+
+{% block extrahead %}
+    {{ super() }}
 {% endblock %}
 
 {% block header %}
