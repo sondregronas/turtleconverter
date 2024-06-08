@@ -47,7 +47,7 @@ print(sections)
 # {
 #    "heading": "My Markdown File!",
 #    "head": "<Everything inside of the head tag>",
-#    "body": "<Everything inside of the body tag (excluding the heading unless isolate_heading=False)>",
+#    "body": "<Everything inside of the body tag (excluding the heading unless remove_heading=False)>",
 #    "meta": { <All the metadata (frontmatter) from the markdown file as a dictionary> }
 # }
 # The static folders / assets folders must match those used in the generate_static_files function
@@ -56,8 +56,7 @@ print(sections)
 Sections is useful if you want to include the markdown file in a template, and want to separate the head and body of the
 file.
 
-You can also use the partial library to create your own versions of the functions with a different set of folders for
-the static files.
+You can also use the partial library to create your partial functions with different static folders for easier use
 
 ```py
 from turtleconverter import mdfile_to_sections, generate_static_files
