@@ -24,13 +24,7 @@ def _build_page(
         template: str = 'turtleconvert.html',
 ) -> tuple[str, any]:
     """Pass a Page to theme template and write output to site_dir."""
-    config._current_page = page
     try:
-        log.debug(f"Building page {page.file.src_uri}")
-
-        # Activate page. Signals to theme that this is the current page.
-        page.active = True
-
         context = get_context(nav, doc_files, config, page)
 
         if template != 'turtleconvert.html':
@@ -40,6 +34,7 @@ def _build_page(
             template_path = template.resolve()
 
             # Write a file to the overrides folder called "custom_template.html" with the contents of the custom template
+            # this is required because the template must be in the same directory as the mkdocs.yml file :(
             with open(Path(__file__).parent / 'overrides' / 'custom_template.html', 'w+') as f:
                 f.write(template_path.read_text())
 
@@ -72,12 +67,7 @@ def _build(fp: Path, static_folder: Path = 'static', config: MkDocsConfig = MKDO
            generate_static_files: bool = False) -> tuple[str, dict] or None:
     """Perform a full site build."""
     logger = logging.getLogger('mkdocs')
-
-    # Add CountHandler for strict mode
-    warning_counter = utils.CountHandler()
-    warning_counter.setLevel(logging.WARNING)
-    if config.strict:
-        logging.getLogger('mkdocs').addHandler(warning_counter)
+    logger.setLevel(logging.ERROR)
 
     inclusion = InclusionLevel.is_included
 
@@ -159,6 +149,3 @@ def _build(fp: Path, static_folder: Path = 'static', config: MkDocsConfig = MKDO
             log.error(str(e))
             raise Abort('Aborted with a BuildError!')
         raise
-
-    finally:
-        logger.removeHandler(warning_counter)
