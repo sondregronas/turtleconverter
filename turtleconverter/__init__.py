@@ -67,9 +67,16 @@ def mdfile_to_sections(md_file_path: Path, static_folder: Path = Path('static'),
 
 if __name__ == '__main__':
     # Testing data, feel free to ignore this
+    import timeit
+
     generate_static_files()
     print(mdfile_to_sections('test.md', template='../example_override.html'))
+
+    start_time = timeit.default_timer()
     data = mdfile_to_html(Path('test.md'), abspath=False, template='../example_override.html')
+    end_time = timeit.default_timer()
+    data = data.replace('Automatically generated',
+                        f'Automatically generated (in {end_time - start_time:.2f} seconds, excluding static files)')
     with open('static/test.html', 'w', encoding='utf-8') as f:
         f.write(data)
 
