@@ -36,7 +36,7 @@ jobs:
 
       - name: Create demo
         run: |
-          python .turtleconverter/__init__.py
+          python ./turtleconverter/__init__.py
           mkdir ./site
           mv ./turtleconverter/static ./site
           echo "<meta http-equiv='refresh' content='0; url=static/test.html'>" > ./site/index.html
