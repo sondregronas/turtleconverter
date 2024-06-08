@@ -65,9 +65,8 @@
 {% endblock %}
 
 {% block scripts %}
-{{ super() }}
 <script>
-    function setTheme() {
+    function updateTheme() {
         let map = {
             'dark': 'slate',
             'light': 'default'
@@ -78,10 +77,11 @@
     }
 
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
-        setTheme();
+        updateTheme();
     });
-    setTheme();
+    updateTheme();
 </script>
+{{ super() }}
 {% endblock %}
 </body>
 </html>
