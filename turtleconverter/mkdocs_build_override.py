@@ -13,8 +13,6 @@ from mkdocs.commands.build import _build_page, _build_extra_template, _populate_
 if not os.path.exists(Path(__file__).parent / 'docs'):
     os.makedirs(Path(__file__).parent / 'docs')
 MKDOCS_CONFIG = mkdocs.config.load_config(str(Path(__file__).parent / 'mkdocs.yml'))
-if not os.listdir(Path(__file__).parent / 'docs'):
-    os.rmdir(Path(__file__).parent / 'docs')
 
 
 def _build_page(
@@ -24,7 +22,7 @@ def _build_page(
         nav: Navigation,
         env: jinja2.Environment,
         template: str = 'turtleconvert.html',
-) -> tuple[str, dict]:
+) -> tuple[str, any]:
     """Pass a Page to theme template and write output to site_dir."""
     config._current_page = page
     try:
@@ -40,9 +38,11 @@ def _build_page(
                 template = Path(template)
             # The path must be absolute from the cwd.
             template_path = template.resolve()
+
             # Write a file to the overrides folder called "custom_template.html" with the contents of the custom template
             with open(Path(__file__).parent / 'overrides' / 'custom_template.html', 'w+') as f:
                 f.write(template_path.read_text())
+
             template = env.get_template('custom_template.html')
         else:
             template = env.get_template('turtleconvert.html')
@@ -68,7 +68,8 @@ def _build_page(
 
 
 def _build(fp: Path, static_folder: Path = 'static', config: MkDocsConfig = MKDOCS_CONFIG, *,
-           template: str = 'turtleconvert.html') -> tuple[str, dict]:
+           template: str = 'turtleconvert.html', only_static_files: bool = False,
+           generate_static_files: bool = False) -> tuple[str, dict] or None:
     """Perform a full site build."""
     logger = logging.getLogger('mkdocs')
 
@@ -94,11 +95,12 @@ def _build(fp: Path, static_folder: Path = 'static', config: MkDocsConfig = MKDO
         # First gather all data from all files/pages to ensure all data is consistent across all pages.
         files = get_files(config)
 
-        # Inject the file into the files list
-        injected_file = File(fp.name, src_dir=str(fp.parent.resolve()), dest_dir=config.site_dir,
-                             use_directory_urls=config.use_directory_urls, dest_uri=f"{fp.stem}/index.html",
-                             inclusion=InclusionLevel.INCLUDED)
-        files.append(injected_file)
+        if not only_static_files:
+            # Inject the file into the files list
+            injected_file = File(fp.name, src_dir=str(fp.parent.resolve()), dest_dir=config.site_dir,
+                                 use_directory_urls=config.use_directory_urls, dest_uri=f"{fp.stem}/index.html",
+                                 inclusion=InclusionLevel.INCLUDED)
+            files.append(injected_file)
 
         env = config.theme.get_env()
         files.add_files_from_theme(env, config)
@@ -123,7 +125,7 @@ def _build(fp: Path, static_folder: Path = 'static', config: MkDocsConfig = MKDO
         # Run `env` plugin events.
         env = config.plugins.on_env(env, config=config, files=files)
 
-        ### Remove favicon, and replace the static folder with the new one
+        # Remove favicon, and replace the static folder with the new one
         log.debug("Copying static assets.")
         for file in files:
             file.dest_dir = static_folder.resolve()
@@ -131,7 +133,10 @@ def _build(fp: Path, static_folder: Path = 'static', config: MkDocsConfig = MKDO
                 file.inclusion = InclusionLevel.EXCLUDED
             file.dest_uri = file.dest_uri.replace('assets/', '')
 
-        files.copy_static_files(dirty=False, inclusion=inclusion)
+        if generate_static_files or only_static_files:
+            files.copy_static_files(dirty=False, inclusion=inclusion)
+        if only_static_files:
+            return
 
         # Generates sitemap and 404, etc.
         # for template in config.theme.static_templates:

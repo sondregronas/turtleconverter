@@ -14,19 +14,24 @@ def _str_to_path_mass_convert(list_of_values: list) -> list:
     return [Path(value) if isinstance(value, str) else value for value in list_of_values]
 
 
+def generate_static_files(static_folder: Path = Path('static'), assets_folder: Path = Path('turtleconvert')) -> None:
+    """Generates the static files for the HTML file."""
+    static_folder, assets_folder = _str_to_path_mass_convert([static_folder, assets_folder])
+    _build(None, static_folder / assets_folder, MKDOCS_CONFIG, only_static_files=True)
+
+
 def mdfile_to_html(md_file_path: Path, static_folder: Path = Path('static'),
                    assets_folder: Path = Path('turtleconvert'), include_metadata: bool = False,
-                   abspath: bool = True, template: Path = 'turtleconvert.html') -> str or tuple:
+                   abspath: bool = True, template: Path = 'turtleconvert.html',
+                   generate_static_files: bool = False) -> str or tuple:
     """Converts a markdown file to a html file."""
     md_file_path, static_folder, assets_folder = _str_to_path_mass_convert([md_file_path, static_folder, assets_folder])
 
-    page, meta = _build(md_file_path, static_folder / assets_folder, MKDOCS_CONFIG, template=template)
+    page, meta = _build(md_file_path, static_folder / assets_folder, MKDOCS_CONFIG, template=template,
+                        generate_static_files=generate_static_files)
 
-    # Replace the relative paths with the absolute paths
-    if abspath:
-        page = page.replace('../assets/', f'/{static_folder}/{assets_folder}/')
-    else:
-        page = page.replace('../assets/', f'../{static_folder}/{assets_folder}/')
+    page = page.replace('../assets/', {True: f'/{static_folder}/{assets_folder}/',
+                                       False: f'../{static_folder}/{assets_folder}/'}[abspath])
 
     if include_metadata:
         return page, meta
@@ -34,23 +39,22 @@ def mdfile_to_html(md_file_path: Path, static_folder: Path = Path('static'),
 
 
 def mdfile_to_sections(md_file_path: Path, static_folder: Path = Path('static'),
-                       assets_folder: Path = Path('turtleconvert'), isolate_heading: bool = True,
-                       abspath: bool = True, template: Path = 'turtleconvert.html') -> dict:
+                       assets_folder: Path = Path('turtleconvert'), remove_heading: bool = True,
+                       abspath: bool = True, template: Path = 'turtleconvert.html',
+                       generate_static_files: bool = False) -> dict:
     """Returns a dictionary of HTML content divided into sections."""
     md_file_path, static_folder, assets_folder = _str_to_path_mass_convert([md_file_path, static_folder, assets_folder])
 
     page, meta = mdfile_to_html(md_file_path, static_folder, assets_folder, include_metadata=True, abspath=abspath,
-                                template=template)
+                                template=template, generate_static_files=generate_static_files)
 
-    regex = re.compile(r"<head.*?>(.*?)</head>.*?<body.*?>(.*?)</body>", re.DOTALL)
-    results = regex.findall(page)
+    head_and_body = re.findall(r"<head.*?>(.*?)</head>.*?<body.*?>(.*?)</body>", page, re.DOTALL)
 
-    h1_tag = meta.get('title', re.search(r'<h1.*?\>(.+?)\<\/h1>', results[0][1]).group(1))
+    head = head_and_body[0][0]
+    body = head_and_body[0][1]
+    h1_tag = meta.get('title', re.search(r'<h1.*?\>(.+?)\<\/h1>', body).group(1))
 
-    head = results[0][0]
-    body = results[0][1]
-
-    if isolate_heading:
+    if remove_heading:
         body = re.sub(r'<h1.*?\>(.+?)\<\/h1>', '', body, count=1)
 
     return {
@@ -63,7 +67,18 @@ def mdfile_to_sections(md_file_path: Path, static_folder: Path = Path('static'),
 
 if __name__ == '__main__':
     # Testing data, feel free to ignore this
+    generate_static_files()
     print(mdfile_to_sections('test.md', template='../example_override.html'))
     data = mdfile_to_html(Path('test.md'), abspath=False, template='../example_override.html')
     with open('static/test.html', 'w', encoding='utf-8') as f:
         f.write(data)
+
+    # Import partial to create a custom function for sections using separate paths
+    # from functools import partial
+    #
+    # my_partial_function = partial(mdfile_to_sections, static_folder=Path('a_different_static_folder'),
+    #                               assets_folder=Path('a_different_assets_folder'))
+    #
+    # generate_static_files(Path('a_different_static_folder'), Path('a_different_assets_folder'))
+    # result = my_partial_function('test.md')
+    # print(result)
