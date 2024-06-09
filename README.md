@@ -2,7 +2,7 @@
 
 [![GitHub Pages](https://badgen.net/badge/example%20output/github%20pages/?icon=chrome)](https://sondregronas.github.io/turtleconverter/)
 
-A slow and inefficient converter for markdown to HTML. This is a very hacky way to use [mkdocs](https://www.mkdocs.org/)
+A ~~~slow and inefficient~~~ converter for markdown to HTML. This is a very hacky way to use [mkdocs](https://www.mkdocs.org/)
 to convert markdown files to HTML. It works by overriding the `_build` function of mkdocs to hook in a markdown file to
 then extract the HTML from said markdown file. The header, nav and footer is omitted from the output.
 

@@ -73,10 +73,18 @@ if __name__ == '__main__':
     print(mdfile_to_sections('test.md', template='../example_override.html'))
 
     start_time = timeit.default_timer()
+    for _ in range(100):
+        data = mdfile_to_html(Path('test.md'), abspath=False, template='../example_override.html')
+    end_time = timeit.default_timer()
+    delta = end_time - start_time
+    print(f'{delta:.10f} x100')
+
+    start_time = timeit.default_timer()
     data = mdfile_to_html(Path('test.md'), abspath=False, template='../example_override.html')
     end_time = timeit.default_timer()
+    print(f'{end_time - start_time:.10f} x1')
     data = data.replace('Automatically generated',
-                        f'Automatically generated (in {end_time - start_time:.2f} seconds, excluding static files)')
+                        f'Automatically generated (in {end_time - start_time:.3f} seconds, excluding static files, 100 iterations took {delta:.3f} seconds)')
     with open('static/test.html', 'w', encoding='utf-8') as f:
         f.write(data)
 

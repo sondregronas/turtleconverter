@@ -104,6 +104,6 @@ External images however will work just fine:
 
 ![External image](https://placehold.co/600x400)
 
-## Where can I get this inefficient and slow converter?
+## Where can I get this markdown to HTML converter?
 
 See the [GitHub page](https://github.com/sondregronas/turtleconverter) for more information.

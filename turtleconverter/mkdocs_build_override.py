@@ -8,11 +8,35 @@ from pathlib import Path
 
 import mkdocs.config
 from mkdocs.commands.build import *
-from mkdocs.commands.build import _build_page, _build_extra_template, _populate_page
+from mkdocs.commands.build import _build_page, _populate_page
 
 if not os.path.exists(Path(__file__).parent / 'docs'):
     os.makedirs(Path(__file__).parent / 'docs')
 MKDOCS_CONFIG = mkdocs.config.load_config(str(Path(__file__).parent / 'mkdocs.yml'))
+
+# Document variables, these normally get set in the build command.
+# Storing them here allows us to reuse the build command without having to set them again. (which is slow)
+__logger = logging.getLogger('mkdocs')
+__logger.setLevel(logging.ERROR)
+__inclusion = InclusionLevel.is_included
+__config = MKDOCS_CONFIG.plugins.on_config(MKDOCS_CONFIG)
+__config.plugins.on_pre_build(config=__config)
+utils.clean_directory(__config.site_dir)
+__files = get_files(__config)
+__env = __config.theme.get_env()
+__files.add_files_from_theme(__env, __config)
+__files = __config.plugins.on_files(__files, config=__config)
+set_exclusions(__files, __config)
+__nav = None
+__nav = __config.plugins.on_nav(__nav, config=__config, files=__files)
+__env = __config.plugins.on_env(__env, config=__config, files=__files)
+
+
+class ConversionError(Exception):
+    """Raised when an error occurs during the build process."""
+
+    def __init__(self, message: str):
+        super().__init__(message)
 
 
 def _build_page(
@@ -54,98 +78,32 @@ def _build_page(
         return output, page.meta
 
     except Exception as e:
-        message = f"Error building page '{page.file.src_uri}':"
-        # Prevent duplicated the error message because it will be printed immediately afterwards.
-        if not isinstance(e, BuildError):
-            message += f" {e}"
-        log.error(message)
-        raise
+        raise ConversionError(f'{e}')
 
 
 def _build(fp: Path, static_folder: Path = 'static', config: MkDocsConfig = MKDOCS_CONFIG, *,
            template: str = 'turtleconvert.html', only_static_files: bool = False,
            generate_static_files: bool = False) -> tuple[str, dict] or None:
-    """Perform a full site build."""
-    logger = logging.getLogger('mkdocs')
-    logger.setLevel(logging.ERROR)
-
-    inclusion = InclusionLevel.is_included
-
     try:
-        # Run `config` plugin events.
-        config = config.plugins.on_config(config)
-
-        # if the docs folder doesn't exist, create it (it's required regardless of the build mode)
-
-        # Run `pre_build` plugin events.
-        config.plugins.on_pre_build(config=config)
-
-        utils.clean_directory(config.site_dir)
-
-        # First gather all data from all files/pages to ensure all data is consistent across all pages.
-        files = get_files(config)
-
-        if not only_static_files:
-            # Inject the file into the files list
-            injected_file = File(fp.name, src_dir=str(fp.parent.resolve()), dest_dir=config.site_dir,
-                                 use_directory_urls=config.use_directory_urls, dest_uri=f"{fp.stem}/index.html",
-                                 inclusion=InclusionLevel.INCLUDED)
-            files.append(injected_file)
-
-        env = config.theme.get_env()
-        files.add_files_from_theme(env, config)
-
-        # Run `files` plugin events.
-        files = config.plugins.on_files(files, config=config)
-        # If plugins have added files but haven't set their inclusion level, calculate it again.
-        set_exclusions(files, config)
-
-        nav = get_navigation(files, config)
-
-        # Run `nav` plugin events.
-        nav = config.plugins.on_nav(nav, config=config, files=files)
-
-        log.debug("Reading markdown pages.")
-        for file in files.documentation_pages(inclusion=inclusion):
-            log.debug(f"Reading: {file.src_uri}")
-            Page(None, file, config)
-            assert file.page is not None
-            _populate_page(file.page, config, files)
-
-        # Run `env` plugin events.
-        env = config.plugins.on_env(env, config=config, files=files)
-
-        # Remove favicon, and replace the static folder with the new one
-        log.debug("Copying static assets.")
-        for file in files:
-            file.dest_dir = static_folder.resolve()
-            if file.src_uri == 'assets/images/favicon.png':
-                file.inclusion = InclusionLevel.EXCLUDED
-            file.dest_uri = file.dest_uri.replace('assets/', '')
-
         if generate_static_files or only_static_files:
-            files.copy_static_files(dirty=False, inclusion=inclusion)
+            for file in __files:
+                file.dest_dir = static_folder.resolve()
+                if file.src_uri == 'assets/images/favicon.png':
+                    file.inclusion = InclusionLevel.EXCLUDED
+                file.dest_uri = file.dest_uri.replace('assets/', '')
+            __files.copy_static_files(dirty=False, inclusion=__inclusion)
         if only_static_files:
             return
 
-        # Generates sitemap and 404, etc.
-        # for template in config.theme.static_templates:
-        #    _build_theme_template(template, env, files, config, nav)
-
-        for template in config.extra_templates:
-            _build_extra_template(template, files, config, nav)
-
-        doc_files = files.documentation_pages(inclusion=inclusion)
-        assert doc_files[0].page is not None
+        file = File(fp.name, src_dir=str(fp.parent.resolve()), dest_dir=config.site_dir,
+                    use_directory_urls=config.use_directory_urls, dest_uri=f"{fp.stem}/index.html",
+                    inclusion=InclusionLevel.INCLUDED)
+        file.page = Page(None, file, config)
+        _populate_page(file.page, config, __files)
 
         return _build_page(
-            doc_files[0].page, config, doc_files, nav, env, template=template
+            file.page, config, [file], __nav, __env, template=template
         )
 
     except Exception as e:
-        # Run `build_error` plugin events.
-        config.plugins.on_build_error(error=e)
-        if isinstance(e, BuildError):
-            log.error(str(e))
-            raise Abort('Aborted with a BuildError!')
-        raise
+        raise ConversionError(f"Error building page '{fp}': {e}")
