@@ -4,15 +4,15 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "turtleconverter"
-version = "0.1.0"
+version = "1.0.0"
 keywords = ["markdown", "mkdocs", "html", "converter", "jinja2"]
 description = "A slow and inefficient markdown to html converter using mkdocs"
 readme = "README.md"
 requires-python = ">=3.8"
 authors = [{ name = "Sondre Grønås" }]
-license = { text = "AGPL-3.0" }
+license = { text = "MIT" }
 classifiers = [
-    "License :: OSI Approved :: AGPL-3.0",
+    "License :: OSI Approved :: MIT",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
