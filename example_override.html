@@ -1,14 +1,14 @@
 {% extends "turtleconvert.html" %}
 
 {% block leadinghead %}
-    <title>Example Templating</title>
-    <meta name="before-content" content="This is before the head">
-    {{ super() }}
+<title>Example Templating</title>
+<meta name="before-content" content="This is before the head">
+{{ super() }}
 {% endblock %}
 
 {% block extrahead %}
-    {{ super() }}
-    <meta name="after-content" content="This is after the head">
+{{ super() }}
+<meta name="after-content" content="This is after the head">
 {% endblock %}
 
 {% block header %}
@@ -16,7 +16,8 @@
     <h3>Header</h3>
 
     {% if page.meta.example_metadata %}
-    <p style="background-color: grey; width: fit-content; padding:10px; margin-inline: auto;">Metadata object: {{ page.meta.example_metadata }}</p>
+    <p style="background-color: grey; width: fit-content; padding:10px; margin-inline: auto;">Metadata object: {{
+        page.meta.example_metadata }}</p>
     {% endif %}
 
     <code style="background-color: grey; width: fit-content; padding:10px; margin-inline: auto;">
@@ -26,13 +27,32 @@
 {% endblock %}
 
 {% block content %}
-    <h4>I'm before the content</h4>
-    {{ super() }}
-    <h4>I'm after the content</h4>
+<h4>I'm before the content</h4>
+{{ super() }}
+<h4>I'm after the content</h4>
 {% endblock %}
 
 {% block footer %}
-    <div style="margin: auto; padding-bottom: 1rem; text-align: center;">
-        <h3>Footer</h3>
-    </div>
+<div style="margin: auto; padding-bottom: 1rem; text-align: center;">
+    <h3>Footer</h3>
+</div>
+{% endblock %}
+
+{% block theme_switch_on_load %}
+<script>
+    function updateTheme() {
+        let map = {
+            'dark': 'slate',
+            'light': 'default'
+        };
+        document.body.setAttribute('data-md-color-primary', 'red');
+        document.body.setAttribute('data-md-color-accent', 'red');
+        document.body.setAttribute('data-md-color-scheme', map[window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light']);
+    }
+
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+        updateTheme();
+    });
+    updateTheme();
+</script>
 {% endblock %}

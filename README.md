@@ -74,7 +74,7 @@ result = my_partial_function('test.md')
 Feel free to fork & change the `overrides` folder or `mkdocs.yml` file to customize the template - you can add as many
 mkdocs plugins as you want, as long as they are added to the pyproject.toml file before installing the package.
 
-Note: the colors are defined in `overrides/base_turtleconvert.html` under the scripts section.
+Note: the color palette are defined by the script in the `theme_switch_on_load` block, by default it's set to `blue`.
 
 ## Custom Template for HTML rendering
 

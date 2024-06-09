@@ -65,6 +65,7 @@
 {% endblock %}
 
 {% block scripts %}
+{% block theme_switch_on_load %}
 <script>
     function updateTheme() {
         let map = {
@@ -81,6 +82,7 @@
     });
     updateTheme();
 </script>
+{% endblock %}
 {{ super() }}
 {% endblock %}
 </body>
