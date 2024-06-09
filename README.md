@@ -53,6 +53,8 @@ print(sections)
 # The static folders / assets folders must match those used in the generate_static_files function
 ```
 
+Exceptions will raise a `turtleconverter.ConversionError` with a copy of the error message.
+
 Sections is useful if you want to include the markdown file in a template, and want to separate the head and body of the
 file.
 
@@ -92,5 +94,4 @@ include a h1 tag in your custom template.
 ## Issues
 
 - Image paths remain relative to the markdown file - **this script does not move/copy any images!!**
-- The converter only allows for one markdown file at a time, which is a _bit_ inefficient (but within the scope of the
-  project)
+- Exceptions are not handled very well, and might break some things due to capturing _everything_ (`except Exception`)
