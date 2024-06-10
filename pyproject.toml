@@ -32,4 +32,4 @@ dependencies = [
 homepage = "https://github.com/sondregronas/turtleconverter"
 
 [tool.setuptools.package-data]
-turtleconverter = ['overrides/*', 'mkdocs.yml']
+turtleconverter = ['overrides/*', 'overrides/javascripts/*', 'overrides/stylesheets/*', 'mkdocs.yml']
