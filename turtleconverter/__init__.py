@@ -4,9 +4,9 @@ import re
 from pathlib import Path
 
 try:
-    from .mkdocs_build_override import MKDOCS_CONFIG, _build
+    from .mkdocs_build_override import MKDOCS_CONFIG, _build, ConversionError  # noqa
 except ImportError:
-    from mkdocs_build_override import MKDOCS_CONFIG, _build
+    from mkdocs_build_override import MKDOCS_CONFIG, _build, ConversionError  # noqa
 
 
 def _str_to_path_mass_convert(list_of_values: list) -> list:
