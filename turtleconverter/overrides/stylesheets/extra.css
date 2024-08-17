@@ -63,6 +63,12 @@ th, td {
     right: .1ch;
 }
 
+/* Fill the width of the page */
+.md-main__inner {
+    display: block;
+}
+
+
 .md-header--shadow {
     box-shadow: none!important;
     transition: none!important;
