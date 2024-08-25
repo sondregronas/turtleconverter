@@ -3,4 +3,5 @@ mkdocs-material
 mkdocs-callouts
 mkdocs-minify-plugin
 mkdocs-glightbox
+mkdocs-roamlinks-plugin
 git+https://github.com/sondregronas/mdx-breakless-lists@master

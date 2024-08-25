@@ -100,6 +100,18 @@ While images _are_ supported, they will need to be placed relative to the render
 
 ![img.png](img.png)
 
+Roamlink
+
+![[img.png]]
+
+Resized with description
+
+![[img.png|Description|128]]
+
+Resized
+
+![[img.png|128]]
+
 External images however will work just fine:
 
 ![External image](https://placehold.co/600x400)

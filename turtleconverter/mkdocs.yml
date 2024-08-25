@@ -62,6 +62,7 @@ plugins:
       minify_js: true
       minify_css: true
   - glightbox
+  - roamlinks
 
 extra_javascript:
   - assets/javascripts/mathjax.js
