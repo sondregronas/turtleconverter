@@ -42,7 +42,14 @@ def mdfile_to_sections(md_file_path: Path, static_folder: Path = Path('static'),
                        assets_folder: Path = Path('turtleconvert'), remove_heading: bool = True,
                        abspath: bool = True, template: Path = 'turtleconvert.html',
                        generate_static_files: bool = False) -> dict:
-    """Returns a dictionary of HTML content divided into sections."""
+    """Returns a dictionary of HTML content divided into sections.
+    {
+        "heading": "My Markdown File!",
+        "head": "<Everything inside of the head tag>",
+        "body": "<Everything inside of the body tag (excluding the heading unless remove_heading=False)>",
+        "meta": { <All the metadata (frontmatter) from the markdown file as a dictionary> }
+    }
+    """
     md_file_path, static_folder, assets_folder = _str_to_path_mass_convert([md_file_path, static_folder, assets_folder])
 
     page, meta = mdfile_to_html(md_file_path, static_folder, assets_folder, include_metadata=True, abspath=abspath,

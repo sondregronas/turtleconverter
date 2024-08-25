@@ -100,13 +100,19 @@ While images _are_ supported, they will need to be placed relative to the render
 
 ![img.png](img.png)
 
+`![img.png](img.png)`
+
 Resized
 
 ![img.png](img.png){width=128}
 
+`![img.png](img.png){width=128}`
+
 External images however will work just fine:
 
 ![External image](https://placehold.co/600x400)
+
+`![External image](https://placehold.co/600x400)`
 
 ## Where can I get this markdown to HTML converter?
 
