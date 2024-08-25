@@ -40,6 +40,7 @@ jobs:
           cd ..
           mkdir ./site
           mv ./turtleconverter/static ./site
+          mv ./turtleconverter/img.png ./site/static
           echo "<meta http-equiv='refresh' content='0; url=static/test.html'>" > ./site/index.html
 
       - name: Upload Pages Artifact
