@@ -4,3 +4,4 @@ mkdocs-callouts
 mkdocs-minify-plugin
 mkdocs-glightbox
 git+https://github.com/sondregronas/mdx-breakless-lists@master
+git+https://github.com/sondregronas/mkdocs-md-img-syntax-converter@main

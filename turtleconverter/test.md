@@ -108,6 +108,16 @@ Resized
 
 `![img.png](img.png){width=128}`
 
+![img.png|128](img.png)
+
+`!\[img.png|128](img.png)`
+
+![img.png|128x256](img.png)
+
+`!\[img.png|128x256](img.png)`
+
+> Note: Height does not change due to aspect-ratio taking precedence in the CSS
+
 External images however will work just fine:
 
 ![External image](https://placehold.co/600x400)

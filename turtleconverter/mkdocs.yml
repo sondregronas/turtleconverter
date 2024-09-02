@@ -62,6 +62,7 @@ plugins:
       minify_js: true
       minify_css: true
   - glightbox
+  - md-img-syntax-converter
 
 extra_javascript:
   - assets/javascripts/mathjax.js
