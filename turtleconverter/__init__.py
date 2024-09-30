@@ -25,7 +25,6 @@ def generate_static_files(static_folder: Path = Path('static'), assets_folder: P
 newline_blockers = [r'```', r'\|']
 except_on = ['\n', r'\|']
 newline_regex = re.compile(rf'({"|".join(newline_blockers)})\n(?!{"|".join(except_on)})')
-print(newline_regex)
 
 
 def ensure_nl2br(md_file_path: Path) -> Path:
