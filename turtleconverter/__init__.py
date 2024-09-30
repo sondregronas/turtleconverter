@@ -1,6 +1,7 @@
 """Slow and steady conversion of singular markdown files to HTML files. See the README for more information."""
 
 import re
+import tempfile
 from pathlib import Path
 
 try:
@@ -20,15 +21,32 @@ def generate_static_files(static_folder: Path = Path('static'), assets_folder: P
     _build(None, static_folder / assets_folder, MKDOCS_CONFIG, only_static_files=True)
 
 
+# If we only have a single newline after ``` or |, add a second \n
+newline_blockers = [r'```', r'|']
+newline_regex = re.compile(rf'({"|".join(newline_blockers)})\n(?!\n)')
+
+
+def ensure_nl2br(md_file_path: Path) -> Path:
+    """Ensures that all newlines in a markdown file are converted to <br> tags."""
+    # Create a temporary file in memory to store the new content
+    with open(md_file_path, 'r', encoding='utf-8') as f:
+        content = f.read()
+    with tempfile.NamedTemporaryFile('w', delete=False, encoding='utf-8') as f:
+        f.write(newline_regex.sub(r'\1\n\n', content))
+    return Path(f.name)
+
+
 def mdfile_to_html(md_file_path: Path, static_folder: Path = Path('static'),
                    assets_folder: Path = Path('turtleconvert'), include_metadata: bool = False,
                    abspath: bool = True, template: Path = 'turtleconvert.html',
                    generate_static_files: bool = False) -> str or tuple:
     """Converts a markdown file to a html file."""
     md_file_path, static_folder, assets_folder = _str_to_path_mass_convert([md_file_path, static_folder, assets_folder])
-
-    page, meta = _build(md_file_path, static_folder / assets_folder, MKDOCS_CONFIG, template=template,
+    # Create a temporary file to store the new content so we can ensure we have correct newlines
+    temp_file = ensure_nl2br(md_file_path)
+    page, meta = _build(temp_file, static_folder / assets_folder, MKDOCS_CONFIG, template=template,
                         generate_static_files=generate_static_files)
+    temp_file.unlink()
 
     page = page.replace('../assets/', {True: f'/{static_folder}/{assets_folder}/',
                                        False: f'../{static_folder}/{assets_folder}/'}[abspath])
