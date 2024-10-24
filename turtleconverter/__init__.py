@@ -18,7 +18,7 @@ def _str_to_path_mass_convert(list_of_values: list) -> list:
 
 
 def generate_static_files(
-    static_folder: Path = Path("static"), assets_folder: Path = Path("turtleconvert")
+        static_folder: Path = Path("static"), assets_folder: Path = Path("turtleconvert")
 ) -> None:
     """Generates the static files for the HTML file."""
     static_folder, assets_folder = _str_to_path_mass_convert(
@@ -36,6 +36,27 @@ newline_regex = re.compile(
 )
 
 
+def ensure_nl2br_katex(content: str) -> str:
+    """Ensure that there are newlines after katex blocks, especially in callout blocks"""
+    new_content = ""
+    leading_callouts = ""
+    in_katex, just_exited_katex = False, False
+    for line in content.split("\n"):
+        if just_exited_katex and not re.match(r"([^\S\r\n]*>?)*\n", line):
+            new_content += f"{leading_callouts}\n"
+            just_exited_katex = False
+
+        if line.endswith("$$"):
+            in_katex = not in_katex
+            leading_callouts = re.match(r"((?:[^\S\r\n]*>?)*)", line).group(0)
+            if not in_katex:
+                just_exited_katex = True
+
+        new_content += f"{line}\n"
+
+    return new_content
+
+
 def ensure_nl2br(md_file_path: Path) -> Path:
     """Ensures that all newlines in a markdown file are converted to <br> tags."""
     # Create a temporary file in memory to store the new content
@@ -50,19 +71,20 @@ def ensure_nl2br(md_file_path: Path) -> Path:
             if match[1]:
                 content = content.replace(f"{match[0]}\n", f"{match[0]}\n{match[1]}\n")
         content = newline_regex.sub(r"\1\n\n", content)
+        content = ensure_nl2br_katex(content)
 
         f.write(content)
     return Path(f.name)
 
 
 def mdfile_to_html(
-    md_file_path: Path,
-    static_folder: Path = Path("static"),
-    assets_folder: Path = Path("turtleconvert"),
-    include_metadata: bool = False,
-    abspath: bool = True,
-    template: Path = "turtleconvert.html",
-    generate_static_files: bool = False,
+        md_file_path: Path,
+        static_folder: Path = Path("static"),
+        assets_folder: Path = Path("turtleconvert"),
+        include_metadata: bool = False,
+        abspath: bool = True,
+        template: Path = "turtleconvert.html",
+        generate_static_files: bool = False,
 ) -> str or tuple:
     """Converts a markdown file to a html file."""
     md_file_path, static_folder, assets_folder = _str_to_path_mass_convert(
@@ -93,13 +115,13 @@ def mdfile_to_html(
 
 
 def mdfile_to_sections(
-    md_file_path: Path,
-    static_folder: Path = Path("static"),
-    assets_folder: Path = Path("turtleconvert"),
-    remove_heading: bool = True,
-    abspath: bool = True,
-    template: Path = "turtleconvert.html",
-    generate_static_files: bool = False,
+        md_file_path: Path,
+        static_folder: Path = Path("static"),
+        assets_folder: Path = Path("turtleconvert"),
+        remove_heading: bool = True,
+        abspath: bool = True,
+        template: Path = "turtleconvert.html",
+        generate_static_files: bool = False,
 ) -> dict:
     """Returns a dictionary of HTML content divided into sections.
     {
