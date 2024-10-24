@@ -29,19 +29,29 @@ def generate_static_files(
 
 # If we only have a single newline after ``` or |, add a second \n
 newline_blockers = [r"```", r"\|"]
-except_on = ["\n", r"\|", r"\s?>"]
+except_on = ["\n", r"\|", r"(?:[^\S\r\n]*>)"]
+callouts_group = r"(?:[^\S\r\n]*>)*"
 newline_regex = re.compile(
-    rf'({"|".join(newline_blockers)})\n(?!{"|".join(except_on)})'
+    rf'({"|".join(newline_blockers)})\n({callouts_group})(?!{"|".join(except_on)})'
 )
 
 
 def ensure_nl2br(md_file_path: Path) -> Path:
     """Ensures that all newlines in a markdown file are converted to <br> tags."""
     # Create a temporary file in memory to store the new content
+    # The file will be deleted after the function is done
     with open(md_file_path, "r", encoding="utf-8") as f:
         content = f.read()
     with tempfile.NamedTemporaryFile("w", delete=False, encoding="utf-8") as f:
-        f.write(newline_regex.sub(r"\1\n\n", content))
+        matches = newline_regex.findall(content)
+
+        for match in matches:
+            # If group 2 matches, add it along with the newline
+            if match[1]:
+                content = content.replace(f"{match[0]}\n", f"{match[0]}\n{match[1]}\n")
+        content = newline_regex.sub(r"\1\n\n", content)
+
+        f.write(content)
     return Path(f.name)
 
 
