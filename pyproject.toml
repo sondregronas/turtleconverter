@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "turtleconverter"
-version = "1.1.0"
+version = "1.1.1"
 keywords = ["markdown", "mkdocs", "html", "converter", "jinja2"]
 description = "A slow and inefficient markdown to html converter using mkdocs"
 readme = "README.md"

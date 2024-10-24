@@ -28,6 +28,8 @@ markdown_extensions:
 
   # Code highlighting
   - pymdownx.superfences        # Code higlighting ```language\n code\n ```
+  - pymdownx.tabbed:
+      alternate_style: true
   - pymdownx.highlight: # Syntax highlighting + superfences
       linenums: false                # numbered lines
       anchor_linenums: false         # generate anchor links to line number
