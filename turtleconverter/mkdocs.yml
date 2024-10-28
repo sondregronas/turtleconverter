@@ -31,8 +31,6 @@ markdown_extensions:
   - pymdownx.tabbed:
       alternate_style: true
   - pymdownx.highlight: # Syntax highlighting + superfences
-      linenums: false                # numbered lines
-      anchor_linenums: false         # generate anchor links to line number
       line_spans: __span            # line span
       pygments_lang_class: true      # add class to code block for language
   - pymdownx.inlinehilite       # Inline code highlighting
