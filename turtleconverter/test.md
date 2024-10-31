@@ -53,6 +53,14 @@ Alternatively just provide the link: https://www.youtube.com/watch?v=dQw4w9WgXcQ
 | col 3 is      | right-aligned | $1600 |
 | col 2 is      |   centered    |   $12 |
 | zebra stripes |   are neat    |    $1 |
+A comment after table without extra newline
+
+> [!INFO]+ Table inside callout
+> 
+> | Number | Text |
+> |--------|------|
+> | 123    | Text |
+> A comment after table without extra newline
 
 ## Math
 

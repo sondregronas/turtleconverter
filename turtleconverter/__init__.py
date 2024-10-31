@@ -28,8 +28,8 @@ def generate_static_files(
 
 
 # If we only have a single newline after ``` or |, add a second \n
-newline_blockers = [r"```", r"\|"]
-except_on = ["\n", r"\|", r"(?:[^\S\r\n]*>)"]
+newline_blockers = [r"```"]
+except_on = ["\n", r"(?:[^\S\r\n]*>)*"]
 callouts_group = r"(?:[^\S\r\n]*>)*"
 newline_regex = re.compile(
     rf'({"|".join(newline_blockers)})\n({callouts_group})(?!{"|".join(except_on)})'
@@ -57,6 +57,15 @@ def ensure_nl2br_katex(content: str) -> str:
     return new_content
 
 
+regex_form_normal = re.compile(r"(\|)\n(?![^\S\r\n]*>)(?![^\S\r\n]*\|)")
+regex_form_callouts = re.compile(r"(\|)\n((?:[^\S\r\n]*>)+)(?![^\S\r\n]*\|)")
+
+
+def ensure_nl2br_forms(content: str) -> str:
+    content = regex_form_normal.sub(r"\1\n\n", content)
+    return regex_form_callouts.sub(r"\1\n\2\n\2", content)
+
+
 def ensure_nl2br(md_file_path: Path) -> Path:
     """Ensures that all newlines in a markdown file are converted to <br> tags."""
     # Create a temporary file in memory to store the new content
@@ -72,6 +81,7 @@ def ensure_nl2br(md_file_path: Path) -> Path:
                 content = content.replace(f"{match[0]}\n", f"{match[0]}\n{match[1]}\n")
         content = newline_regex.sub(r"\1\n\n", content)
         content = ensure_nl2br_katex(content)
+        content = ensure_nl2br_forms(content)
 
         f.write(content)
     return Path(f.name)
