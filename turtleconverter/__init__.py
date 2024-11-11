@@ -29,7 +29,7 @@ def generate_static_files(
 
 # If we only have a single newline after ``` or |, add a second \n
 newline_blockers = [r"```"]
-except_on = ["\n", r"(?:[^\S\r\n]*>)"]
+except_on = ["\n", r"(?:[^\S\r\n]*>)", r"[^\S\r\n]+\n"]
 callouts_group = r"(?:[^\S\r\n]*>)*"
 newline_regex = re.compile(
     rf'({"|".join(newline_blockers)})\n({callouts_group})(?!{"|".join(except_on)})'
