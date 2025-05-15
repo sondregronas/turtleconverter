@@ -44,11 +44,11 @@ jobs:
           echo "<meta http-equiv='refresh' content='0; url=static/test.html'>" > ./site/index.html
 
       - name: Upload Pages Artifact
-        uses: actions/upload-pages-artifact@v1
+        uses: actions/upload-pages-artifact@v3
         with:
           artifact-name: github-pages
           path: ./site
 
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v1
+        uses: actions/deploy-pages@v4
