@@ -166,6 +166,9 @@ def mdfile_to_sections(
     if remove_heading:
         body = re.sub(r"<h1.*?\>(.+?)\<\/h1>", "", body, count=1)
 
+    if not "title" in meta:
+        meta["title"] = h1_tag
+
     return {"heading": h1_tag, "head": head, "body": body, "meta": meta}
 
 
