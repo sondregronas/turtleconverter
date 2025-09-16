@@ -4,7 +4,7 @@ theme:
   name: material
   custom_dir: overrides
   palette: # Light/Dark Mode
-    - media: "(prefers-color-scheme: light)"  # Light mode
+    # - media: "(prefers-color-scheme: light)"  # Light mode
     - media: "(prefers-color-scheme: dark)"  # Dark mode
   features:
     - content.code.annotate     # Add annotations to codeblocks (```code (1)``` 1. annotation)
