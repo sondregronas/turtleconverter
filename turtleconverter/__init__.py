@@ -18,7 +18,7 @@ def _str_to_path_mass_convert(list_of_values: list) -> list:
 
 
 def generate_static_files(
-        static_folder: Path = Path("static"), assets_folder: Path = Path("turtleconvert")
+    static_folder: Path = Path("static"), assets_folder: Path = Path("turtleconvert")
 ) -> None:
     """Generates the static files for the HTML file."""
     static_folder, assets_folder = _str_to_path_mass_convert(
@@ -62,6 +62,34 @@ regex_form_callouts = re.compile(r"(\|)\n((?:[^\S\r\n]*>)+)(?![^\S\r\n]*\|)")
 
 
 def ensure_nl2br_forms(content: str) -> str:
+    # First, ensure a callout-prefixed blank line before a table line inside a callout
+    lines = content.split("\n")
+    out: list[str] = []
+    in_code = False
+    for line in lines:
+        stripped = line.lstrip()
+        if stripped.startswith("```"):
+            in_code = not in_code
+        # Detect callout table line like "> ... |" and insert "prefix" blank line above when previous same-prefix line has content
+        if not in_code:
+            m = re.match(r"([^\S\r\n]*(?:> ?)+)([^\S\r\n]*\|).*$", line)
+            if m and out:
+                prefix = m.group(1)
+                prev = out[-1]
+                if prev.startswith(prefix):
+                    inner = prev[len(prefix) :]
+                    is_prev_table = bool(re.match(r"[^\S\r\n]*\|", inner))
+                    is_prev_blank = inner.strip() == ""
+                    if (
+                        (not is_prev_table)
+                        and (not is_prev_blank)
+                        and prev.strip() != ""
+                    ):
+                        out.append(prefix)
+        out.append(line)
+    content = "\n".join(out)
+
+    # Then, ensure a trailing blank line after a table line
     content = regex_form_normal.sub(r"\1\n\n", content)
     return regex_form_callouts.sub(r"\1\n\2\n\2", content)
 
@@ -92,13 +120,13 @@ def create_tempfile(md_file_path: Path) -> Path:
 
 
 def mdfile_to_html(
-        md_file_path: Path,
-        static_folder: Path = Path("static"),
-        assets_folder: Path = Path("turtleconvert"),
-        include_metadata: bool = False,
-        abspath: bool = True,
-        template: Path = "turtleconvert.html",
-        generate_static_files: bool = False,
+    md_file_path: Path,
+    static_folder: Path = Path("static"),
+    assets_folder: Path = Path("turtleconvert"),
+    include_metadata: bool = False,
+    abspath: bool = True,
+    template: Path = "turtleconvert.html",
+    generate_static_files: bool = False,
 ) -> str or tuple:
     """Converts a markdown file to a html file."""
     md_file_path, static_folder, assets_folder = _str_to_path_mass_convert(
@@ -129,13 +157,13 @@ def mdfile_to_html(
 
 
 def mdfile_to_sections(
-        md_file_path: Path,
-        static_folder: Path = Path("static"),
-        assets_folder: Path = Path("turtleconvert"),
-        remove_heading: bool = True,
-        abspath: bool = True,
-        template: Path = "turtleconvert.html",
-        generate_static_files: bool = False,
+    md_file_path: Path,
+    static_folder: Path = Path("static"),
+    assets_folder: Path = Path("turtleconvert"),
+    remove_heading: bool = True,
+    abspath: bool = True,
+    template: Path = "turtleconvert.html",
+    generate_static_files: bool = False,
 ) -> dict:
     """Returns a dictionary of HTML content divided into sections.
     {
