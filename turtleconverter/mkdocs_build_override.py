@@ -98,6 +98,19 @@ _real_os_walk = os.walk  # captured before patching to avoid infinite recursion
 # Active settings – set by _build() before each page render.
 _active_ignore_glob: tuple[str, ...] = ()
 _active_leading_url: str = "/"
+_active_normalize_url: bool = False
+
+ALLOWED_URL_CHARS_REGEX = _re.compile(r"[a-zA-Z0-9\.\-\_\/æøåÆØÅ]")
+
+
+def normalize_url_str(text: str) -> str:
+    """Removes all special characters from the provided str using the ALLOWED_URL_CHARS_REGEX regex"""
+    # If the text has an extension, we dont want to normalize.
+    if "." in text and not text.endswith(".html"):
+        return text
+    new_text = text.replace(" ", "_")
+    new_text = "".join(c.group() for c in ALLOWED_URL_CHARS_REGEX.finditer(new_text))
+    return _re.sub("_+", "_", new_text)
 
 
 def _roam_walk_filtered(base_docs_url):
@@ -121,6 +134,8 @@ def _make_absolute(rel_url: str, page_url: str) -> str:
     abs_path = (
         os.path.normpath(os.path.join(page_dir, rel_url)).replace("\\", "/").lstrip("/")
     )
+    if _active_normalize_url:
+        abs_path = normalize_url_str(abs_path)
     leading = _active_leading_url.rstrip("/")
     return f"{leading}/{abs_path}" if abs_path else f"{leading}/"
 
@@ -146,7 +161,7 @@ def _absolutify_markdown_link(md_link: str, page_url: str) -> str:
 class _AbsoluteRoamLinkReplacer(_roam_plugin.RoamLinkReplacer):
     def __call__(self, match):
         result = super().__call__(match)
-        if _active_leading_url == "/":
+        if _active_leading_url == "/" and not _active_normalize_url:
             return result
         return _absolutify_markdown_link(result, self.page_url)
 
@@ -154,7 +169,7 @@ class _AbsoluteRoamLinkReplacer(_roam_plugin.RoamLinkReplacer):
 class _AbsoluteAutoLinkReplacer(_roam_plugin.AutoLinkReplacer):
     def __call__(self, match):
         result = super().__call__(match)
-        if _active_leading_url == "/":
+        if _active_leading_url == "/" and not _active_normalize_url:
             return result
         return _absolutify_markdown_link(result, self.page_url)
 
@@ -175,6 +190,7 @@ def _build(
     docs_folder: Path = None,
     ignore_glob: tuple[str, ...] = ("*/translations/*",),
     leading_url: str = "/",
+    normalize_url: bool = False,
 ) -> tuple[str, dict] or None:
     if docs_folder:
         __config.docs_dir = str(docs_folder.resolve())
@@ -199,9 +215,10 @@ def _build(
         )
         file.page = Page(None, file, config)
         # Set active ignore patterns so the roamlinks os.walk patch applies.
-        global _active_ignore_glob, _active_leading_url
+        global _active_ignore_glob, _active_leading_url, _active_normalize_url
         _active_ignore_glob = tuple(ignore_glob)
         _active_leading_url = leading_url
+        _active_normalize_url = normalize_url
         _populate_page(file.page, config, __files)
 
         return _build_page(file.page, config, [file], __nav, __env, template=template)

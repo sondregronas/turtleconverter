@@ -130,6 +130,7 @@ def mdfile_to_html(
     docs_folder: Path = None,
     ignore_glob: tuple[str, ...] = ("*/translations/*",),
     leading_url: str = "/",
+    normalize_url: bool = False,
 ) -> str or tuple:
     """Converts a markdown file to a html file."""
     md_file_path, static_folder, assets_folder = _str_to_path_mass_convert(
@@ -146,6 +147,7 @@ def mdfile_to_html(
         docs_folder=docs_folder,
         ignore_glob=ignore_glob,
         leading_url=leading_url,
+        normalize_url=normalize_url,
     )
     temp_file.unlink()
 
@@ -173,6 +175,7 @@ def mdfile_to_sections(
     docs_folder: Path = None,
     ignore_glob: tuple[str, ...] = ("*/translations/*",),
     leading_url: str = "/",
+    normalize_url: bool = False,
 ) -> dict:
     """Returns a dictionary of HTML content divided into sections.
     {
@@ -197,6 +200,7 @@ def mdfile_to_sections(
         docs_folder=docs_folder,
         ignore_glob=ignore_glob,
         leading_url=leading_url,
+        normalize_url=normalize_url,
     )
 
     head_and_body = re.findall(
