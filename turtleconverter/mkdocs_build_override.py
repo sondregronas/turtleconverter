@@ -4,6 +4,8 @@ This is a messy hack to override the mkdocs build command to convert a single ma
 
 from __future__ import annotations
 import fnmatch
+import re
+
 import mkdocs.config
 from mkdocs.commands.build import *
 from mkdocs.commands.build import _build_page, _populate_page
@@ -134,6 +136,8 @@ def _make_absolute(rel_url: str, page_url: str) -> str:
     abs_path = (
         os.path.normpath(os.path.join(page_dir, rel_url)).replace("\\", "/").lstrip("/")
     )
+    if any([abs_path.endswith(".md"), abs_path.endswith(".markdown")]):
+        abs_path = re.sub(r"\.\w+$", "", abs_path)
     if _active_normalize_urls:
         abs_path = normalize_url_str(abs_path)
     leading = _active_leading_url.rstrip("/")
@@ -161,7 +165,7 @@ def _absolutify_markdown_link(md_link: str, page_url: str) -> str:
 class _AbsoluteRoamLinkReplacer(_roam_plugin.RoamLinkReplacer):
     def __call__(self, match):
         result = super().__call__(match)
-        if _active_leading_url == "/" and not _active_normalize_urls:
+        if not _active_leading_url and not _active_normalize_urls:
             return result
         return _absolutify_markdown_link(result, self.page_url)
 
@@ -169,7 +173,7 @@ class _AbsoluteRoamLinkReplacer(_roam_plugin.RoamLinkReplacer):
 class _AbsoluteAutoLinkReplacer(_roam_plugin.AutoLinkReplacer):
     def __call__(self, match):
         result = super().__call__(match)
-        if _active_leading_url == "/" and not _active_normalize_urls:
+        if not _active_leading_url and not _active_normalize_urls:
             return result
         return _absolutify_markdown_link(result, self.page_url)
 
