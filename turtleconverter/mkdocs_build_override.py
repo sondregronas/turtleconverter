@@ -3,7 +3,7 @@ This is a messy hack to override the mkdocs build command to convert a single ma
 """
 
 from __future__ import annotations
-
+import fnmatch
 import mkdocs.config
 from mkdocs.commands.build import *
 from mkdocs.commands.build import _build_page, _populate_page
@@ -84,6 +84,37 @@ def _build_page(
         raise ConversionError(f"{e}")
 
 
+# ---------------------------------------------------------------------------
+# Roamlinks patch
+# Roamlinks walks the filesystem directly (bypasses MkDocs Files), so we
+# redirect its internal os.walk to a filtered version that respects ignore_glob.
+# ---------------------------------------------------------------------------
+import mkdocs_roamlinks_plugin.plugin as _roam_plugin
+
+_real_os_walk = os.walk  # captured before patching to avoid infinite recursion
+
+# Active ignore patterns – set by _build() before each page render.
+_active_ignore_glob: tuple[str, ...] = ()
+
+
+def _roam_walk_filtered(base_docs_url):
+    """os.walk replacement for roamlinks that skips ignore_glob paths."""
+    for root, dirs, files in _real_os_walk(base_docs_url, followlinks=True):
+        rel_root = os.path.relpath(root, base_docs_url).replace(os.sep, "/")
+        filtered = [
+            name
+            for name in files
+            if not any(
+                fnmatch.fnmatch("/" + (rel_root + "/" + name).lstrip("./"), p)
+                for p in _active_ignore_glob
+            )
+        ]
+        yield root, dirs, filtered
+
+
+_roam_plugin.os.walk = lambda path, **kw: _roam_walk_filtered(path)
+
+
 def _build(
     fp: Path,
     static_folder: Path = "static",
@@ -93,6 +124,7 @@ def _build(
     only_static_files: bool = False,
     generate_static_files: bool = False,
     docs_folder: Path = None,
+    ignore_glob: tuple[str, ...] = ("*/translations/*",),
 ) -> tuple[str, dict] or None:
     if docs_folder:
         __config.docs_dir = str(docs_folder.resolve())
@@ -116,6 +148,9 @@ def _build(
             inclusion=InclusionLevel.INCLUDED,
         )
         file.page = Page(None, file, config)
+        # Set active ignore patterns so the roamlinks os.walk patch applies.
+        global _active_ignore_glob
+        _active_ignore_glob = tuple(ignore_glob)
         _populate_page(file.page, config, __files)
 
         return _build_page(file.page, config, [file], __nav, __env, template=template)

@@ -128,6 +128,7 @@ def mdfile_to_html(
     template: Path = "turtleconvert.html",
     generate_static_files: bool = False,
     docs_folder: Path = None,
+    ignore_glob: tuple[str, ...] = ("*/translations/*",),
 ) -> str or tuple:
     """Converts a markdown file to a html file."""
     md_file_path, static_folder, assets_folder = _str_to_path_mass_convert(
@@ -142,6 +143,7 @@ def mdfile_to_html(
         template=template,
         generate_static_files=generate_static_files,
         docs_folder=docs_folder,
+        ignore_glob=ignore_glob,
     )
     temp_file.unlink()
 
@@ -167,6 +169,7 @@ def mdfile_to_sections(
     template: Path = "turtleconvert.html",
     generate_static_files: bool = False,
     docs_folder: Path = None,
+    ignore_glob: tuple[str, ...] = ("*/translations/*",),
 ) -> dict:
     """Returns a dictionary of HTML content divided into sections.
     {
@@ -189,6 +192,7 @@ def mdfile_to_sections(
         template=template,
         generate_static_files=generate_static_files,
         docs_folder=docs_folder,
+        ignore_glob=ignore_glob,
     )
 
     head_and_body = re.findall(
@@ -213,10 +217,10 @@ if __name__ == "__main__":
     import timeit
 
     generate_static_files()
-    print(mdfile_to_sections("test.md", template="../example_override.html"))
+    # print(mdfile_to_sections("test.md", template="../example_override.html"))
 
     start_time = timeit.default_timer()
-    for _ in range(100):
+    for _ in range(1):
         data = mdfile_to_html(
             Path("test.md"),
             abspath=False,

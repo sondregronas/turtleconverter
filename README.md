@@ -27,7 +27,8 @@ generate_static_files()
 # def mdfile_to_html(md_file_path: Path, static_folder: Path = Path('static'),
 #                    assets_folder: Path = Path('turtleconvert'), include_metadata: bool = False,
 #                    abspath: bool = True, template: Path = 'turtleconvert.html',
-#                    generate_static_files: bool = False) -> str or tuple:
+#                    generate_static_files: bool = False, docs_folder: Path = None,
+#                    ignore_glob: tuple[str, ...] = ("*/translations/*",)) -> str or tuple:
 
 # Converts a markdown file to HTML
 html = mdfile_to_html("test.md")
@@ -38,11 +39,15 @@ print(html)
 # If you use [[wikilinks]] / roamlinks in your markdown, pass the root folder of your docs so links can be resolved:
 html = mdfile_to_html("test.md", docs_folder=Path("my_docs"))
 
+# To exclude files matching certain glob patterns from roamlink resolution (e.g. translation folders):
+html = mdfile_to_html("test.md", docs_folder=Path("my_docs"), ignore_glob=("*/translations/*",))
+
 
 # def mdfile_to_sections(md_file_path: Path, static_folder: Path = Path('static'),
 #                        assets_folder: Path = Path('turtleconvert'), remove_heading: bool = True,
 #                        abspath: bool = True, template: Path = 'turtleconvert.html',
-#                        generate_static_files: bool = False) -> dict:
+#                        generate_static_files: bool = False, docs_folder: Path = None,
+#                        ignore_glob: tuple[str, ...] = ("*/translations/*",)) -> dict:
 
 # Converts a markdown file to sections
 sections = mdfile_to_sections("test.md")
@@ -57,6 +62,9 @@ print(sections)
 
 # If you use [[wikilinks]] / roamlinks in your markdown, pass the root folder of your docs so links can be resolved:
 sections = mdfile_to_sections("test.md", docs_folder=Path("my_docs"))
+
+# To exclude files matching certain glob patterns from roamlink resolution (e.g. translation folders):
+sections = mdfile_to_sections("test.md", docs_folder=Path("my_docs"), ignore_glob=("*/translations/*",))
 ```
 
 Exceptions will raise a `turtleconverter.ConversionError` with a copy of the error message.
