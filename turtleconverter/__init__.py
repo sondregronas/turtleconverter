@@ -225,10 +225,10 @@ if __name__ == "__main__":
     import timeit
 
     generate_static_files()
-    # print(mdfile_to_sections("test.md", template="../example_override.html"))
+    print(mdfile_to_sections("test.md", template="../example_override.html"))
 
     start_time = timeit.default_timer()
-    for _ in range(1):
+    for _ in range(100):
         data = mdfile_to_html(
             Path("test.md"),
             abspath=False,
