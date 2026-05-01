@@ -42,6 +42,8 @@ print("Hello, World!") # (1)
 
 Link: [YouTube video](https://www.youtube.com/watch?v=dQw4w9WgXcQ)
 
+WikiLinks: [[a roamlink|A Roamlink]] (Note, the link doesn't work, but it is generated correctly)
+
 Alternatively just provide the link: https://www.youtube.com/watch?v=dQw4w9WgXcQ
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/dQw4w9WgXcQ?si=CX_S_qf3As47elL_" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>

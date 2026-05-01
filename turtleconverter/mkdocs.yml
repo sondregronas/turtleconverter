@@ -63,6 +63,7 @@ plugins:
       minify_css: true
   - glightbox
   - md-img-syntax-converter
+  - roamlinks
 
 extra_javascript:
   - assets/javascripts/mathjax.js
