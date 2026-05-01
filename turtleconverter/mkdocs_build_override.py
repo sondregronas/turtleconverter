@@ -88,13 +88,16 @@ def _build_page(
 # Roamlinks patch
 # Roamlinks walks the filesystem directly (bypasses MkDocs Files), so we
 # redirect its internal os.walk to a filtered version that respects ignore_glob.
+# We also patch the replacer classes to produce absolute URLs via leading_url.
 # ---------------------------------------------------------------------------
+import re as _re
 import mkdocs_roamlinks_plugin.plugin as _roam_plugin
 
 _real_os_walk = os.walk  # captured before patching to avoid infinite recursion
 
-# Active ignore patterns – set by _build() before each page render.
+# Active settings – set by _build() before each page render.
 _active_ignore_glob: tuple[str, ...] = ()
+_active_leading_url: str = "/"
 
 
 def _roam_walk_filtered(base_docs_url):
@@ -112,7 +115,53 @@ def _roam_walk_filtered(base_docs_url):
         yield root, dirs, filtered
 
 
+def _make_absolute(rel_url: str, page_url: str) -> str:
+    """Convert a relative link URL to an absolute URL using _active_leading_url."""
+    page_dir = os.path.dirname(page_url).replace("\\", "/")
+    abs_path = (
+        os.path.normpath(os.path.join(page_dir, rel_url)).replace("\\", "/").lstrip("/")
+    )
+    leading = _active_leading_url.rstrip("/")
+    return f"{leading}/{abs_path}" if abs_path else f"{leading}/"
+
+
+def _absolutify_markdown_link(md_link: str, page_url: str) -> str:
+    """Rewrite relative URLs inside a markdown link string to absolute URLs."""
+
+    def _fix(m):
+        url = m.group(1) if m.group(1) is not None else m.group(2)
+        bracketed = m.group(1) is not None
+        if (
+            url.startswith("#")
+            or url.startswith("http://")
+            or url.startswith("https://")
+        ):
+            return m.group(0)
+        abs_url = _make_absolute(url, page_url)
+        return f"(<{abs_url}>)" if bracketed else f"({abs_url})"
+
+    return _re.sub(r"\(<([^>]+)>\)|\(([^)]+)\)", _fix, md_link)
+
+
+class _AbsoluteRoamLinkReplacer(_roam_plugin.RoamLinkReplacer):
+    def __call__(self, match):
+        result = super().__call__(match)
+        if _active_leading_url == "/":
+            return result
+        return _absolutify_markdown_link(result, self.page_url)
+
+
+class _AbsoluteAutoLinkReplacer(_roam_plugin.AutoLinkReplacer):
+    def __call__(self, match):
+        result = super().__call__(match)
+        if _active_leading_url == "/":
+            return result
+        return _absolutify_markdown_link(result, self.page_url)
+
+
 _roam_plugin.os.walk = lambda path, **kw: _roam_walk_filtered(path)
+_roam_plugin.RoamLinkReplacer = _AbsoluteRoamLinkReplacer
+_roam_plugin.AutoLinkReplacer = _AbsoluteAutoLinkReplacer
 
 
 def _build(
@@ -125,6 +174,7 @@ def _build(
     generate_static_files: bool = False,
     docs_folder: Path = None,
     ignore_glob: tuple[str, ...] = ("*/translations/*",),
+    leading_url: str = "/",
 ) -> tuple[str, dict] or None:
     if docs_folder:
         __config.docs_dir = str(docs_folder.resolve())
@@ -149,8 +199,9 @@ def _build(
         )
         file.page = Page(None, file, config)
         # Set active ignore patterns so the roamlinks os.walk patch applies.
-        global _active_ignore_glob
+        global _active_ignore_glob, _active_leading_url
         _active_ignore_glob = tuple(ignore_glob)
+        _active_leading_url = leading_url
         _populate_page(file.page, config, __files)
 
         return _build_page(file.page, config, [file], __nav, __env, template=template)

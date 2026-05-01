@@ -129,6 +129,7 @@ def mdfile_to_html(
     generate_static_files: bool = False,
     docs_folder: Path = None,
     ignore_glob: tuple[str, ...] = ("*/translations/*",),
+    leading_url: str = "/",
 ) -> str or tuple:
     """Converts a markdown file to a html file."""
     md_file_path, static_folder, assets_folder = _str_to_path_mass_convert(
@@ -144,6 +145,7 @@ def mdfile_to_html(
         generate_static_files=generate_static_files,
         docs_folder=docs_folder,
         ignore_glob=ignore_glob,
+        leading_url=leading_url,
     )
     temp_file.unlink()
 
@@ -170,6 +172,7 @@ def mdfile_to_sections(
     generate_static_files: bool = False,
     docs_folder: Path = None,
     ignore_glob: tuple[str, ...] = ("*/translations/*",),
+    leading_url: str = "/",
 ) -> dict:
     """Returns a dictionary of HTML content divided into sections.
     {
@@ -193,6 +196,7 @@ def mdfile_to_sections(
         generate_static_files=generate_static_files,
         docs_folder=docs_folder,
         ignore_glob=ignore_glob,
+        leading_url=leading_url,
     )
 
     head_and_body = re.findall(
@@ -237,6 +241,7 @@ if __name__ == "__main__":
         abspath=False,
         template="../example_override.html",
         docs_folder=Path("example_docs"),
+        leading_url="/",
     )
     end_time = timeit.default_timer()
     print(f"{end_time - start_time:.10f} x1")
