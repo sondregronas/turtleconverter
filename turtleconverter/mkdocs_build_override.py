@@ -94,6 +94,8 @@ def _build(
     generate_static_files: bool = False,
     docs_folder: Path = None,
 ) -> tuple[str, dict] or None:
+    if docs_folder:
+        __config.docs_dir = str(docs_folder.resolve())
     try:
         if generate_static_files or only_static_files:
             for file in __files:
@@ -114,38 +116,9 @@ def _build(
             inclusion=InclusionLevel.INCLUDED,
         )
         file.page = Page(None, file, config)
+        _populate_page(file.page, config, __files)
 
-        files = [file]
-
-        if docs_folder:
-            # Temporarily override docs_dir so roamlinks (and other plugins) walk
-            # the correct directory when resolving [[wikilinks]].
-            original_docs_dir = config.docs_dir
-            config.docs_dir = str(docs_folder.resolve())
-
-            _populate_page(file.page, config, __files)
-
-            # add all .md files (as long as its not "fp") in the docs_folder
-            for md_file in docs_folder.glob("**/*.md"):
-                if md_file.resolve() == fp.resolve():
-                    continue
-                data_file = File(
-                    md_file.name,
-                    src_dir=str(md_file.parent.resolve()),
-                    dest_dir=config.site_dir,
-                    use_directory_urls=config.use_directory_urls,
-                    dest_uri=f"{md_file.stem}/index.html",
-                    inclusion=InclusionLevel.INCLUDED,
-                )
-                data_file.page = Page(None, data_file, config)
-                _populate_page(data_file.page, config, __files)
-                files.append(data_file)
-
-            config.docs_dir = original_docs_dir
-        else:
-            _populate_page(file.page, config, __files)
-
-        return _build_page(file.page, config, files, __nav, __env, template=template)
+        return _build_page(file.page, config, [file], __nav, __env, template=template)
 
     except Exception as e:
         raise ConversionError(f"Error building page '{fp}': {e}")
