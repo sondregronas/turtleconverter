@@ -11,6 +11,8 @@ from mkdocs.commands.build import *
 from mkdocs.commands.build import _build_page, _populate_page
 from pathlib import Path
 
+from contextlib import contextmanager
+
 if not os.path.exists(Path(__file__).parent / "docs"):
     os.makedirs(Path(__file__).parent / "docs")
 MKDOCS_CONFIG = mkdocs.config.load_config(str(Path(__file__).parent / "mkdocs.yml"))
@@ -178,9 +180,21 @@ class _AbsoluteAutoLinkReplacer(_roam_plugin.AutoLinkReplacer):
         return _absolutify_markdown_link(result, self.page_url)
 
 
-_roam_plugin.os.walk = lambda path, **kw: _roam_walk_filtered(str(path))
-_roam_plugin.RoamLinkReplacer = _AbsoluteRoamLinkReplacer
-_roam_plugin.AutoLinkReplacer = _AbsoluteAutoLinkReplacer
+@contextmanager
+def _patched_roamlinks():
+    original_walk = _roam_plugin.os.walk
+    original_roam = _roam_plugin.RoamLinkReplacer
+    original_auto = _roam_plugin.AutoLinkReplacer
+
+    try:
+        _roam_plugin.os.walk = lambda path, **kw: _roam_walk_filtered(path)
+        _roam_plugin.RoamLinkReplacer = _AbsoluteRoamLinkReplacer
+        _roam_plugin.AutoLinkReplacer = _AbsoluteAutoLinkReplacer
+        yield
+    finally:
+        _roam_plugin.os.walk = original_walk
+        _roam_plugin.RoamLinkReplacer = original_roam
+        _roam_plugin.AutoLinkReplacer = original_auto
 
 
 def _build(
@@ -225,7 +239,10 @@ def _build(
         _active_normalize_urls = normalize_urls
         _populate_page(file.page, config, __files)
 
-        return _build_page(file.page, config, [file], __nav, __env, template=template)
+        with _patched_roamlinks():
+            return _build_page(
+                file.page, config, [file], __nav, __env, template=template
+            )
 
     except Exception as e:
         raise ConversionError(f"Error building page '{fp}': {e}")
