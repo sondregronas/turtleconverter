@@ -115,7 +115,7 @@ def normalize_url_str(text: str) -> str:
     return _re.sub("_+", "_", new_text)
 
 
-def _roam_walk_filtered(base_docs_url):
+def _roam_walk_filtered(base_docs_url: str):
     """os.walk replacement for roamlinks that skips ignore_glob paths."""
     for root, dirs, files in _real_os_walk(base_docs_url, followlinks=True):
         rel_root = os.path.relpath(root, base_docs_url).replace(os.sep, "/")
@@ -178,7 +178,7 @@ class _AbsoluteAutoLinkReplacer(_roam_plugin.AutoLinkReplacer):
         return _absolutify_markdown_link(result, self.page_url)
 
 
-_roam_plugin.os.walk = lambda path, **kw: _roam_walk_filtered(path)
+_roam_plugin.os.walk = lambda path, **kw: _roam_walk_filtered(str(path))
 _roam_plugin.RoamLinkReplacer = _AbsoluteRoamLinkReplacer
 _roam_plugin.AutoLinkReplacer = _AbsoluteAutoLinkReplacer
 
