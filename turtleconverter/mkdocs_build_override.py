@@ -5,12 +5,12 @@ This is a messy hack to override the mkdocs build command to convert a single ma
 from __future__ import annotations
 import fnmatch
 import re
+import types
 
 import mkdocs.config
 from mkdocs.commands.build import *
 from mkdocs.commands.build import _build_page, _populate_page
 from pathlib import Path
-
 from contextlib import contextmanager
 
 if not os.path.exists(Path(__file__).parent / "docs"):
@@ -97,7 +97,7 @@ def _build_page(
 import re as _re
 import mkdocs_roamlinks_plugin.plugin as _roam_plugin
 
-_real_os_walk = os.walk  # captured before patching to avoid infinite recursion
+_real_os_walk = os.walk
 
 # Active settings – set by _build() before each page render.
 _active_ignore_glob: tuple[str, ...] = ()
@@ -182,17 +182,21 @@ class _AbsoluteAutoLinkReplacer(_roam_plugin.AutoLinkReplacer):
 
 @contextmanager
 def _patched_roamlinks():
-    original_walk = _roam_plugin.os.walk
+    original_os = _roam_plugin.os
     original_roam = _roam_plugin.RoamLinkReplacer
     original_auto = _roam_plugin.AutoLinkReplacer
 
+    patched_os = types.ModuleType("os")
+    patched_os.__dict__.update(original_os.__dict__)
+    patched_os.walk = _roam_walk_filtered
+
     try:
-        _roam_plugin.os.walk = lambda path, **kw: _roam_walk_filtered(path)
+        _roam_plugin.os = patched_os
         _roam_plugin.RoamLinkReplacer = _AbsoluteRoamLinkReplacer
         _roam_plugin.AutoLinkReplacer = _AbsoluteAutoLinkReplacer
         yield
     finally:
-        _roam_plugin.os.walk = original_walk
+        _roam_plugin.os = original_os
         _roam_plugin.RoamLinkReplacer = original_roam
         _roam_plugin.AutoLinkReplacer = original_auto
 
@@ -237,9 +241,9 @@ def _build(
         _active_ignore_glob = tuple(ignore_glob)
         _active_leading_url = leading_url
         _active_normalize_urls = normalize_urls
-        _populate_page(file.page, config, __files)
 
         with _patched_roamlinks():
+            _populate_page(file.page, config, __files)
             return _build_page(
                 file.page, config, [file], __nav, __env, template=template
             )
