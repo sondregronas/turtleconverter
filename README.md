@@ -42,6 +42,9 @@ html = mdfile_to_html("test.md", docs_folder=Path("my_docs"))
 # To exclude files matching certain glob patterns from roamlink resolution (e.g. translation folders):
 html = mdfile_to_html("test.md", docs_folder=Path("my_docs"), ignore_glob=("*/translations/*",))
 
+# Roamlinks inside frontmatter values are also resolved by default, pass roamlinks_in_frontmatter=False to disable:
+html = mdfile_to_html("test.md", docs_folder=Path("my_docs"), roamlinks_in_frontmatter=False)
+
 
 # def mdfile_to_sections(md_file_path: Path, static_folder: Path = Path('static'),
 #                        assets_folder: Path = Path('turtleconvert'), remove_heading: bool = True,

@@ -5,9 +5,19 @@ import tempfile
 from pathlib import Path
 
 try:
-    from .mkdocs_build_override import MKDOCS_CONFIG, _build, ConversionError  # noqa
+    from .mkdocs_build_override import (  # noqa
+        MKDOCS_CONFIG,
+        _build,
+        ConversionError,
+        quote_roamlinks_in_frontmatter,
+    )
 except ImportError:
-    from mkdocs_build_override import MKDOCS_CONFIG, _build, ConversionError  # noqa
+    from mkdocs_build_override import (  # noqa
+        MKDOCS_CONFIG,
+        _build,
+        ConversionError,
+        quote_roamlinks_in_frontmatter,
+    )
 
 
 def _str_to_path_mass_convert(list_of_values: list) -> list:
@@ -94,7 +104,7 @@ def ensure_nl2br_forms(content: str) -> str:
     return regex_form_callouts.sub(r"\1\n\2\n\2", content)
 
 
-def create_tempfile(md_file_path: Path) -> Path:
+def create_tempfile(md_file_path: Path, roamlinks_in_frontmatter: bool = True) -> Path:
     """Ensures that all newlines in a markdown file are converted to <br> tags."""
     # Create a temporary file in memory to store the new content
     # The file will be deleted after the function is done
@@ -114,6 +124,10 @@ def create_tempfile(md_file_path: Path) -> Path:
         content = newline_regex.sub(r"\1\n\n", content)
         content = ensure_nl2br_katex(content)
         content = ensure_nl2br_forms(content)
+        if roamlinks_in_frontmatter:
+            # Quote bare [[roamlinks]] in frontmatter so YAML doesn't parse them
+            # as a nested flow-sequence instead of a string.
+            content = quote_roamlinks_in_frontmatter(content)
 
         f.write(content)
     return Path(f.name)
@@ -131,13 +145,14 @@ def mdfile_to_html(
     ignore_glob: tuple[str, ...] = ("*/translations/*",),
     leading_url: str = "/",
     normalize_urls: bool = False,
+    roamlinks_in_frontmatter: bool = True,
 ) -> str or tuple:
     """Converts a markdown file to a html file."""
     md_file_path, static_folder, assets_folder = _str_to_path_mass_convert(
         [md_file_path, static_folder, assets_folder]
     )
     # Create a temporary file to store the new content so we can ensure we have correct newlines
-    temp_file = create_tempfile(md_file_path)
+    temp_file = create_tempfile(md_file_path, roamlinks_in_frontmatter)
     page, meta = _build(
         temp_file,
         static_folder / assets_folder,
@@ -148,6 +163,7 @@ def mdfile_to_html(
         ignore_glob=ignore_glob,
         leading_url=leading_url,
         normalize_urls=normalize_urls,
+        roamlinks_in_frontmatter=roamlinks_in_frontmatter,
     )
     temp_file.unlink()
 
@@ -176,6 +192,7 @@ def mdfile_to_sections(
     ignore_glob: tuple[str, ...] = ("*/translations/*",),
     leading_url: str = "/",
     normalize_urls: bool = False,
+    roamlinks_in_frontmatter: bool = True,
 ) -> dict:
     """Returns a dictionary of HTML content divided into sections.
     {
@@ -201,6 +218,7 @@ def mdfile_to_sections(
         ignore_glob=ignore_glob,
         leading_url=leading_url,
         normalize_urls=normalize_urls,
+        roamlinks_in_frontmatter=roamlinks_in_frontmatter,
     )
 
     head_and_body = re.findall(

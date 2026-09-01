@@ -106,6 +106,47 @@ _active_normalize_urls: bool = False
 
 ALLOWED_URL_CHARS_REGEX = _re.compile(r"[a-zA-Z0-9\.\-\_\/æøåÆØÅ]")
 
+# Matches a value that consists solely of a roamlink (e.g. `[[file#title|alias|WxH]]`),
+# used to detect frontmatter values that YAML would otherwise misparse as a nested
+# flow-sequence (since `[[...]]` is valid YAML syntax for "a list containing a list").
+_ROAMLINK_FULL_RE = _re.compile(r"^\s*" + _roam_plugin.ROAMLINK_RE + r"\s*$")
+# Matches the YAML frontmatter block delimited by `---` (or `...`) fences.
+_FRONTMATTER_BLOCK_RE = _re.compile(r"^(---[ \t]*\n)(.*?\n)(?:---|\.\.\.)[ \t]*\n", _re.DOTALL)
+# Matches a single `key: value` or `- value` frontmatter line, capturing the value part.
+_FRONTMATTER_LINE_RE = _re.compile(
+    r"^(?P<prefix>[ \t]*(?:-[ \t]+|[A-Za-z0-9_-]+:[ \t]*))(?P<value>.+?)[ \t]*$"
+)
+
+
+def quote_roamlinks_in_frontmatter(content: str) -> str:
+    """Quotes bare [[roamlink]] values inside YAML frontmatter.
+
+    YAML parses an unquoted `[[foo]]` value as a nested flow-sequence (a list
+    containing a list) rather than as a string, which means a bare roamlink in
+    frontmatter would never reach the roamlinks resolver as text. Quoting the
+    value here preserves it as a string so it can be resolved like any other
+    roamlink.
+    """
+    match = _FRONTMATTER_BLOCK_RE.match(content)
+    if not match:
+        return content
+
+    lines = match.group(2).split("\n")
+    for i, line in enumerate(lines):
+        line_match = _FRONTMATTER_LINE_RE.match(line)
+        if not line_match:
+            continue
+        value = line_match.group("value")
+        if value.startswith('"') or value.startswith("'"):
+            continue
+        if not _ROAMLINK_FULL_RE.match(value):
+            continue
+        escaped = value.replace("\\", "\\\\").replace('"', '\\"')
+        lines[i] = f'{line_match.group("prefix")}"{escaped}"'
+
+    new_block = "\n".join(lines)
+    return content[: match.start(2)] + new_block + content[match.end(2) :]
+
 
 def normalize_url_str(text: str) -> str:
     """Removes all special characters from the provided str using the ALLOWED_URL_CHARS_REGEX regex"""
@@ -164,6 +205,41 @@ def _absolutify_markdown_link(md_link: str, page_url: str) -> str:
     return _re.sub(r"\(<([^>]+)>\)|\(([^)]+)\)", _fix, md_link)
 
 
+_LINK_ANGLE_BRACKETS_RE = _re.compile(r"\]\(<([^>]+)>\)")
+
+
+def _to_plain_markdown_link(text: str) -> str:
+    """Strips the `<...>` CommonMark link-escaping wrapper the roamlinks
+    replacer adds around URLs (needed when reprocessed by a markdown parser),
+    so frontmatter values are always plain, valid `[text](url)` markdown links
+    usable as-is in templates without further processing."""
+    return _LINK_ANGLE_BRACKETS_RE.sub(r"](\1)", text)
+
+
+def _process_meta_roamlinks(value: any, base_docs_url: str, page_url: str) -> any:
+    """Recursively rewrite roamlinks/autolinks found inside frontmatter metadata values."""
+    if isinstance(value, str):
+        value = _re.sub(
+            _roam_plugin.AUTOLINK_RE,
+            _AbsoluteAutoLinkReplacer(base_docs_url, page_url),
+            value,
+        )
+        value = _re.sub(
+            _roam_plugin.ROAMLINK_RE,
+            _AbsoluteRoamLinkReplacer(base_docs_url, page_url),
+            value,
+        )
+        return _to_plain_markdown_link(value)
+    if isinstance(value, list):
+        return [_process_meta_roamlinks(v, base_docs_url, page_url) for v in value]
+    if isinstance(value, dict):
+        return {
+            k: _process_meta_roamlinks(v, base_docs_url, page_url)
+            for k, v in value.items()
+        }
+    return value
+
+
 class _AbsoluteRoamLinkReplacer(_roam_plugin.RoamLinkReplacer):
     def __call__(self, match):
         result = super().__call__(match)
@@ -213,6 +289,7 @@ def _build(
     ignore_glob: tuple[str, ...] = ("*/translations/*",),
     leading_url: str = "/",
     normalize_urls: bool = False,
+    roamlinks_in_frontmatter: bool = True,
 ) -> tuple[str, dict] or None:
     if docs_folder:
         __config.docs_dir = str(docs_folder.resolve())
@@ -244,6 +321,10 @@ def _build(
 
         with _patched_roamlinks():
             _populate_page(file.page, config, __files)
+            if roamlinks_in_frontmatter:
+                file.page.meta = _process_meta_roamlinks(
+                    file.page.meta, config.docs_dir, file.page.file.src_path
+                )
             return _build_page(
                 file.page, config, [file], __nav, __env, template=template
             )
