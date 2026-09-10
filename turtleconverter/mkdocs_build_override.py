@@ -278,7 +278,7 @@ def _patched_roamlinks():
 
 
 def _build(
-    fp: Path,
+    fp: Path | File,
     static_folder: Path = "static",
     config: MkDocsConfig = MKDOCS_CONFIG,
     *,
@@ -304,14 +304,20 @@ def _build(
         if only_static_files:
             return
 
-        file = File(
-            fp.name,
-            src_dir=str(fp.parent.resolve()),
-            dest_dir=config.site_dir,
-            use_directory_urls=config.use_directory_urls,
-            dest_uri=f"{fp.stem}/index.html",
-            inclusion=InclusionLevel.INCLUDED,
-        )
+        if isinstance(fp, File):
+            file = fp
+            file.dest_dir = config.site_dir
+            file.dest_uri = f"{Path(file.src_uri).stem}/index.html"
+            file.inclusion = InclusionLevel.INCLUDED
+        else:
+            file = File(
+                fp.name,
+                src_dir=str(fp.parent.resolve()),
+                dest_dir=config.site_dir,
+                use_directory_urls=config.use_directory_urls,
+                dest_uri=f"{fp.stem}/index.html",
+                inclusion=InclusionLevel.INCLUDED,
+            )
         file.page = Page(None, file, config)
         # Set active ignore patterns so the roamlinks os.walk patch applies.
         global _active_ignore_glob, _active_leading_url, _active_normalize_urls

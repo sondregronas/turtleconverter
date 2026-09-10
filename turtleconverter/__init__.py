@@ -1,8 +1,8 @@
 """Slow and steady conversion of singular markdown files to HTML files. See the README for more information."""
 
 import re
-import tempfile
 from pathlib import Path
+from mkdocs.structure.files import File
 
 try:
     from .mkdocs_build_override import (  # noqa
@@ -104,33 +104,26 @@ def ensure_nl2br_forms(content: str) -> str:
     return regex_form_callouts.sub(r"\1\n\2\n\2", content)
 
 
-def create_tempfile(md_file_path: Path, roamlinks_in_frontmatter: bool = True) -> Path:
-    """Ensures that all newlines in a markdown file are converted to <br> tags."""
-    # Create a temporary file in memory to store the new content
-    # The file will be deleted after the function is done
+def _preprocess_markdown(
+    md_file_path: Path, roamlinks_in_frontmatter: bool = True
+) -> str:
     with open(md_file_path, "r", encoding="utf-8") as f:
         content = f.read()
 
-    temp_dir = Path(tempfile.gettempdir()) / "turtleconverter"
-    temp_dir.mkdir(exist_ok=True)
+    matches = newline_regex.findall(content)
+    for match in matches:
+        # If group 2 matches, add it along with the newline
+        if match[1]:
+            content = content.replace(f"{match[0]}\n", f"{match[0]}\n{match[1]}\n")
+    content = newline_regex.sub(r"\1\n\n", content)
+    content = ensure_nl2br_katex(content)
+    content = ensure_nl2br_forms(content)
+    if roamlinks_in_frontmatter:
+        # Quote bare [[roamlinks]] in frontmatter so YAML doesn't parse them
+        # as a nested flow-sequence.
+        content = quote_roamlinks_in_frontmatter(content)
 
-    with open(Path(temp_dir / md_file_path.name), "w", encoding="utf-8") as f:
-        matches = newline_regex.findall(content)
-
-        for match in matches:
-            # If group 2 matches, add it along with the newline
-            if match[1]:
-                content = content.replace(f"{match[0]}\n", f"{match[0]}\n{match[1]}\n")
-        content = newline_regex.sub(r"\1\n\n", content)
-        content = ensure_nl2br_katex(content)
-        content = ensure_nl2br_forms(content)
-        if roamlinks_in_frontmatter:
-            # Quote bare [[roamlinks]] in frontmatter so YAML doesn't parse them
-            # as a nested flow-sequence instead of a string.
-            content = quote_roamlinks_in_frontmatter(content)
-
-        f.write(content)
-    return Path(f.name)
+    return content
 
 
 def mdfile_to_html(
@@ -151,10 +144,12 @@ def mdfile_to_html(
     md_file_path, static_folder, assets_folder = _str_to_path_mass_convert(
         [md_file_path, static_folder, assets_folder]
     )
-    # Create a temporary file to store the new content so we can ensure we have correct newlines
-    temp_file = create_tempfile(md_file_path, roamlinks_in_frontmatter)
     page, meta = _build(
-        temp_file,
+        File.generated(
+            MKDOCS_CONFIG,
+            md_file_path.name,
+            content=_preprocess_markdown(md_file_path, roamlinks_in_frontmatter),
+        ),
         static_folder / assets_folder,
         MKDOCS_CONFIG,
         template=template,
@@ -165,8 +160,6 @@ def mdfile_to_html(
         normalize_urls=normalize_urls,
         roamlinks_in_frontmatter=roamlinks_in_frontmatter,
     )
-    temp_file.unlink()
-
     page = page.replace(
         "../assets/",
         {
