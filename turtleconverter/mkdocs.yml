@@ -25,6 +25,7 @@ markdown_extensions:
   - def_list                    # Definition lists (term: definition)
   - pymdownx.tasklist: # - [ ] Task, - [x] Task completed
       custom_checkbox: true         # https://squidfunk.github.io/mkdocs-material/reference/lists/#using-definition-lists
+      clickable_checkbox: true      # Allow users to toggle task list items in generated HTML
 
   # Code highlighting
   - pymdownx.superfences        # Code higlighting ```language\n code\n ```
