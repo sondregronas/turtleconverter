@@ -45,6 +45,31 @@ newline_regex = re.compile(
     rf'({"|".join(newline_blockers)})\n({callouts_group})(?!{"|".join(except_on)})'
 )
 
+_TURTLETRANSLATE_SECTION_OPEN = (
+    r'<span\b(?=[^>]*\bclass\s*=\s*["\'][^"\']*\bturtletranslate-section\b[^"\']*["\'])'
+    r"[^>]*>"
+)
+_TURTLETRANSLATE_SECTION_OPEN_RE = re.compile(
+    rf"{_TURTLETRANSLATE_SECTION_OPEN}(?:[ \t]*\r?\n[ \t]*)+",
+    re.IGNORECASE,
+)
+_TURTLETRANSLATE_SECTION_CLOSE_RE = re.compile(
+    rf"</span\s*>[ \t]*(?:\r?\n[ \t]*)*" rf"(?=(?:{_TURTLETRANSLATE_SECTION_OPEN}|\Z))",
+    re.IGNORECASE,
+)
+_TURTLETRANSLATE_BLOCKQUOTE_BOUNDARY_RE = re.compile(
+    rf"(?m)(^>[^\r\n]*)\r?\n(?:[ \t]*\r?\n)*</span\s*>[ \t]*(?:\r?\n[ \t]*)*"
+    rf"(?={_TURTLETRANSLATE_SECTION_OPEN})",
+    re.IGNORECASE,
+)
+
+
+def _strip_turtletranslate_sections(content: str) -> str:
+    """Remove turtletranslate tracking wrappers without changing their content."""
+    content = _TURTLETRANSLATE_BLOCKQUOTE_BOUNDARY_RE.sub(r"\1\n", content)
+    content = _TURTLETRANSLATE_SECTION_CLOSE_RE.sub("", content)
+    return _TURTLETRANSLATE_SECTION_OPEN_RE.sub("", content)
+
 
 def ensure_nl2br_katex(content: str) -> str:
     """Ensure that there are newlines after katex blocks, especially in callout blocks"""
@@ -110,6 +135,7 @@ def _preprocess_markdown(
     with open(md_file_path, "r", encoding="utf-8") as f:
         content = f.read()
 
+    content = _strip_turtletranslate_sections(content)
     matches = newline_regex.findall(content)
     for match in matches:
         # If group 2 matches, add it along with the newline
