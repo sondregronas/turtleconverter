@@ -4,5 +4,6 @@ mkdocs-callouts
 mkdocs-minify-plugin
 mkdocs-glightbox
 mkdocs-roamlinks-plugin
+mkdocs-mermaid2-plugin
 git+https://github.com/sondregronas/mdx-breakless-lists@master
 git+https://github.com/sondregronas/mkdocs-md-img-syntax-converter@main
