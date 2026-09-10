@@ -45,7 +45,7 @@ markdown_extensions:
   - pymdownx.tilde              # ~~strikethrough~~, ~subscript~ (~2~OH)
   - pymdownx.mark               # ==mark text== (yellow marker)
   - pymdownx.betterem: # **bold** *italic*, __bold__ _italic_
-      smart_enable: all             # Both modifiers (* and _)
+      smart_enable: [underscore, asterisk] # Both modifiers (* and _)
 
   # Extra
   - pymdownx.keys               # ++ctrl+alt+delete++
