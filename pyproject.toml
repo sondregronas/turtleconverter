@@ -26,6 +26,7 @@ dependencies = [
     "mkdocs-glightbox",
     "mkdocs-roamlinks-plugin",
     "mkdocs-mermaid2-plugin",
+    "mkdocs-video",
     "mdx-breakless-lists@git+https://github.com/sondregronas/mdx-breakless-lists@master",
     "md-img-syntax-converter@git+https://github.com/sondregronas/mkdocs-md-img-syntax-converter@main",
 ]

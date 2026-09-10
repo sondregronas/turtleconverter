@@ -65,6 +65,7 @@ plugins:
   - md-img-syntax-converter
   - roamlinks
   - mermaid2
+  - mkdocs-video
 
 extra_javascript:
   - assets/javascripts/mathjax.js
