@@ -277,6 +277,28 @@ def _patched_roamlinks():
         _roam_plugin.AutoLinkReplacer = original_auto
 
 
+def _patch_mermaid_theme(static_folder: Path) -> None:
+    """Override Material's direct Mermaid arrowhead path styling."""
+    old_rule = (
+        "#arrowhead path{fill:var(--md-mermaid-sequence-message-line-color);"
+        "stroke:none}"
+    )
+    new_rule = (
+        '[id$=\\"-arrowhead\\"] path,[id$=\\"-filled-head\\"] path{'
+        "fill:var(--md-mermaid-sequence-message-line-color)!important;"
+        "stroke:var(--md-mermaid-sequence-message-line-color)!important}"
+        '[id$=\\"-crosshead\\"] path{'
+        "stroke:var(--md-mermaid-sequence-message-line-color)!important}"
+    )
+    for bundle in (static_folder / "javascripts").glob("bundle.*.min.js"):
+        content = bundle.read_text(encoding="utf-8")
+        if old_rule not in content:
+            if new_rule not in content:
+                raise RuntimeError(f"Mermaid theme rule not found in {bundle}")
+            continue
+        bundle.write_text(content.replace(old_rule, new_rule), encoding="utf-8")
+
+
 def _build(
     fp: Path | File,
     static_folder: Path = "static",
@@ -301,6 +323,7 @@ def _build(
                     file.inclusion = InclusionLevel.EXCLUDED
                 file.dest_uri = file.dest_uri.replace("assets/", "")
             __files.copy_static_files(dirty=False, inclusion=__inclusion)
+            _patch_mermaid_theme(static_folder.resolve())
         if only_static_files:
             return
 
