@@ -28,7 +28,11 @@ markdown_extensions:
       clickable_checkbox: true      # Allow users to toggle task list items in generated HTML
 
   # Code highlighting
-  - pymdownx.superfences        # Code higlighting ```language\n code\n ```
+  - pymdownx.superfences:       # Code higlighting ```language\n code\n ```
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:mermaid2.fence_mermaid_custom
   - pymdownx.tabbed:
       alternate_style: true
   - pymdownx.highlight: # Syntax highlighting + superfences

@@ -24,6 +24,13 @@ print("Hello, World!") # (1)
 
 1. You can even add annotations to your code blocks :smile:
 
+## Mermaid
+
+```mermaid
+flowchart LR
+    Start --> Finish
+```
+
 
 ## Heading 2
 
