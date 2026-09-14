@@ -50,7 +50,8 @@ html = mdfile_to_html("test.md", docs_folder=Path("my_docs"), roamlinks_in_front
 #                        assets_folder: Path = Path('turtleconvert'), remove_heading: bool = True,
 #                        abspath: bool = True, template: Path = 'turtleconvert.html',
 #                        generate_static_files: bool = False, docs_folder: Path = None,
-#                        ignore_glob: tuple[str, ...] = ("*/translations/*",)) -> dict:
+#                        ignore_glob: tuple[str, ...] = ("*/translations/*",),
+#                        remove_heading_if_title_matches: bool = True) -> dict:
 
 # Converts a markdown file to sections
 sections = mdfile_to_sections("test.md")
