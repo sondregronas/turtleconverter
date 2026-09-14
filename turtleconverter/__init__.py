@@ -93,41 +93,92 @@ def ensure_nl2br_katex(content: str) -> str:
     return new_content
 
 
-regex_form_normal = re.compile(r"(\|)\n(?![^\S\r\n]*>)(?![^\S\r\n]*\|)")
-regex_form_callouts = re.compile(r"(\|)\n((?:[^\S\r\n]*>)+)(?![^\S\r\n]*\|)")
+def _table_prefix_and_content(line: str) -> tuple[str, str]:
+    match = re.match(r"([^\S\r\n]*(?:> ?)*)(.*)", line)
+    return match.group(1), match.group(2)
+
+
+def _is_table_separator(line: str) -> bool:
+    _, content = _table_prefix_and_content(line)
+    cells = [cell.strip() for cell in content.strip().strip("|").split("|")]
+    return len(cells) >= 2 and all(re.fullmatch(r":?-{3,}:?", cell) for cell in cells)
+
+
+def _is_table_row(line: str) -> bool:
+    _, content = _table_prefix_and_content(line)
+    return "|" in content
 
 
 def ensure_nl2br_forms(content: str) -> str:
-    # First, ensure a callout-prefixed blank line before a table line inside a callout
     lines = content.split("\n")
-    out: list[str] = []
+    table_lines: set[int] = set()
     in_code = False
-    for line in lines:
-        stripped = line.lstrip()
-        if stripped.startswith("```"):
-            in_code = not in_code
-        # Detect callout table line like "> ... |" and insert "prefix" blank line above when previous same-prefix line has content
-        if not in_code:
-            m = re.match(r"([^\S\r\n]*(?:> ?)+)([^\S\r\n]*\|).*$", line)
-            if m and out:
-                prefix = m.group(1)
-                prev = out[-1]
-                if prev.startswith(prefix):
-                    inner = prev[len(prefix) :]
-                    is_prev_table = bool(re.match(r"[^\S\r\n]*\|", inner))
-                    is_prev_blank = inner.strip() == ""
-                    if (
-                        (not is_prev_table)
-                        and (not is_prev_blank)
-                        and prev.strip() != ""
-                    ):
-                        out.append(prefix)
-        out.append(line)
-    content = "\n".join(out)
+    in_frontmatter = bool(lines and lines[0].strip() == "---")
+    separator_indices: list[int] = []
+    protected: set[int] = set()
 
-    # Then, ensure a trailing blank line after a table line
-    content = regex_form_normal.sub(r"\1\n\n", content)
-    return regex_form_callouts.sub(r"\1\n\2\n\2", content)
+    for index, line in enumerate(lines):
+        if in_frontmatter:
+            protected.add(index)
+            if index > 0 and line.strip() in {"---", "..."}:
+                in_frontmatter = False
+            continue
+        stripped = line.lstrip()
+        if re.match(r"(```|~~~)", stripped):
+            in_code = not in_code
+        if in_code:
+            protected.add(index)
+        elif _is_table_separator(line):
+            separator_indices.append(index)
+
+    for separator_index in separator_indices:
+        prefix, _ = _table_prefix_and_content(lines[separator_index])
+        start = separator_index
+        while (
+            start > 0
+            and start - 1 not in protected
+            and lines[start - 1].strip()
+            and _table_prefix_and_content(lines[start - 1])[0] == prefix
+            and _is_table_row(lines[start - 1])
+        ):
+            start -= 1
+        end = separator_index
+        while (
+            end + 1 < len(lines)
+            and end + 1 not in protected
+            and lines[end + 1].strip()
+            and _table_prefix_and_content(lines[end + 1])[0] == prefix
+            and _is_table_row(lines[end + 1])
+        ):
+            end += 1
+        table_lines.update(range(start, end + 1))
+
+    out: list[str] = []
+    for index, line in enumerate(lines):
+        if index in table_lines and line.rstrip().endswith("|"):
+            next_line = lines[index + 1] if index + 1 < len(lines) else ""
+            prefix, _ = _table_prefix_and_content(line)
+            if index + 1 not in table_lines and (
+                not prefix.startswith(">")
+                or _table_prefix_and_content(next_line)[0] == prefix
+            ):
+                if prefix.startswith(">"):
+                    out.extend([line, prefix])
+                else:
+                    out.extend([line, ""])
+                continue
+        if (
+            index in table_lines
+            and index > 0
+            and _table_prefix_and_content(line)[0].startswith(">")
+            and _table_prefix_and_content(lines[index - 1])[0]
+            == _table_prefix_and_content(line)[0]
+            and lines[index - 1].strip()
+            and not _is_table_row(lines[index - 1])
+        ):
+            out.append(_table_prefix_and_content(line)[0])
+        out.append(line)
+    return "\n".join(out)
 
 
 def _preprocess_markdown(
