@@ -278,7 +278,7 @@ def _patched_roamlinks():
 
 
 def _patch_mermaid_theme(static_folder: Path) -> None:
-    """Override Material's direct Mermaid arrowhead path styling."""
+    """Override Mermaid styles that cannot be supplied through page CSS."""
     old_rule = (
         "#arrowhead path{fill:var(--md-mermaid-sequence-message-line-color);"
         "stroke:none}"
@@ -290,13 +290,25 @@ def _patch_mermaid_theme(static_folder: Path) -> None:
         '[id$=\\"-crosshead\\"] path{'
         "stroke:var(--md-mermaid-sequence-message-line-color)!important}"
     )
+    stroke_width_rule = (
+        ".actor,.actor-line,.messageLine0,.messageLine1,.loopLine,line,rect{"
+        "stroke-width:var(--md-mermaid-stroke-width,1px)!important}"
+    )
+    old_theme_end = 'defs #sequencenumber{fill:var(--md-mermaid-sequence-number-bg-color)!important}";var so'
+    new_theme_end = f'{old_theme_end[:-8]}{stroke_width_rule}";var so'
     for bundle in (static_folder / "javascripts").glob("bundle.*.min.js"):
         content = bundle.read_text(encoding="utf-8")
         if old_rule not in content:
             if new_rule not in content:
                 raise RuntimeError(f"Mermaid theme rule not found in {bundle}")
-            continue
-        bundle.write_text(content.replace(old_rule, new_rule), encoding="utf-8")
+            patched_content = content
+        else:
+            patched_content = content.replace(old_rule, new_rule)
+        if stroke_width_rule not in patched_content:
+            if old_theme_end not in patched_content:
+                raise RuntimeError(f"Mermaid themeCSS end not found in {bundle}")
+            patched_content = patched_content.replace(old_theme_end, new_theme_end, 1)
+        bundle.write_text(patched_content, encoding="utf-8")
 
 
 def _build(

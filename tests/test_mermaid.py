@@ -40,3 +40,8 @@ sequenceDiagram
         "stroke:var(--md-mermaid-sequence-message-line-color)!important" in mermaid_theme
     )
     assert "marker{fill:var(--md-mermaid-edge-color)!important}" in mermaid_theme
+    assert (
+        ".actor,.actor-line,.messageLine0,.messageLine1,.loopLine,line,rect{"
+        "stroke-width:var(--md-mermaid-stroke-width,1px)!important}"
+    ) in mermaid_theme
+    assert '}".actor,.actor-line' not in mermaid_theme
