@@ -212,13 +212,13 @@ def mdfile_to_sections(
     leading_url: str = "/",
     normalize_urls: bool = False,
     roamlinks_in_frontmatter: bool = True,
-    remove_heading_if_title_matches: bool = True,
+    remove_heading_if_title_matches: bool = False,
 ) -> dict:
     """Returns a dictionary of HTML content divided into sections.
     {
         "heading": "My Markdown File!",
         "head": "<Everything inside of the head tag>",
-        "body": "<Everything inside of the body tag (excluding the heading when remove_heading=True or when it matches meta['title'])>",
+        "body": "<Everything inside of the body tag (excluding the heading when remove_heading=True or when remove_heading_if_title_matches=True and it matches meta['title'])>",
         "meta": { <All the metadata (frontmatter) from the markdown file as a dictionary> }
     }
     """
@@ -247,8 +247,10 @@ def mdfile_to_sections(
 
     head = head_and_body[0][0]
     body = head_and_body[0][1]
-    h1_match = re.search(r"<h1.*?\>(.+?)\<\/h1>", body)
-    h1_tag = meta.get("title", h1_match.group(1))
+    h1_match = re.search(
+        r'<h1\b(?=[^>]*\bid\s*=\s*["\'])[^>]*>(.+?)</h1>', body, re.DOTALL
+    )
+    h1_tag = meta.get("title") or (h1_match.group(1) if h1_match else None)
 
     if remove_heading or (
         remove_heading_if_title_matches
