@@ -294,8 +294,10 @@ def _patch_mermaid_theme(static_folder: Path) -> None:
         ".actor,.actor-line,.messageLine0,.messageLine1,.loopLine,line,rect{"
         "stroke-width:var(--md-mermaid-stroke-width,1px)!important}"
     )
-    old_theme_end = 'defs #sequencenumber{fill:var(--md-mermaid-sequence-number-bg-color)!important}";var so'
-    new_theme_end = f'{old_theme_end[:-8]}{stroke_width_rule}";var so'
+    theme_end = (
+        "defs #sequencenumber{"
+        "fill:var(--md-mermaid-sequence-number-bg-color)!important}"
+    )
     for bundle in (static_folder / "javascripts").glob("bundle.*.min.js"):
         content = bundle.read_text(encoding="utf-8")
         if old_rule not in content:
@@ -305,9 +307,19 @@ def _patch_mermaid_theme(static_folder: Path) -> None:
         else:
             patched_content = content.replace(old_rule, new_rule)
         if stroke_width_rule not in patched_content:
-            if old_theme_end not in patched_content:
+            theme_end_start = patched_content.find(theme_end)
+            theme_end_marker = '";var '
+            theme_end_marker_start = patched_content.find(
+                theme_end_marker,
+                theme_end_start + len(theme_end),
+            )
+            if theme_end_start < 0 or theme_end_marker_start < 0:
                 raise RuntimeError(f"Mermaid themeCSS end not found in {bundle}")
-            patched_content = patched_content.replace(old_theme_end, new_theme_end, 1)
+            patched_content = (
+                patched_content[:theme_end_marker_start]
+                + stroke_width_rule
+                + patched_content[theme_end_marker_start:]
+            )
         bundle.write_text(patched_content, encoding="utf-8")
 
 
