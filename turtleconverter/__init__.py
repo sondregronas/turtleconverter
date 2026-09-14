@@ -1,6 +1,7 @@
 """Slow and steady conversion of singular markdown files to HTML files. See the README for more information."""
 
 import re
+from html import unescape
 from pathlib import Path
 from mkdocs.structure.files import File
 
@@ -247,16 +248,14 @@ def mdfile_to_sections(
 
     head = head_and_body[0][0]
     body = head_and_body[0][1]
-    h1_match = re.search(
-        r'<h1\b(?=[^>]*\bid\s*=\s*["\'])[^>]*>(.+?)</h1>', body, re.DOTALL
-    )
+    h1_match = re.search(r"<h1.*?\>(.+?)\<\/h1>", body, re.DOTALL)
     h1_tag = meta.get("title") or (h1_match.group(1) if h1_match else None)
 
     if remove_heading or (
         remove_heading_if_title_matches
         and "title" in meta
         and h1_match is not None
-        and h1_match.group(1) == meta["title"]
+        and unescape(h1_match.group(1)) == str(meta["title"])
     ):
         body = re.sub(r"<h1.*?\>(.+?)\<\/h1>", "", body, count=1)
 
