@@ -3,6 +3,7 @@
 import re
 from html import unescape
 from pathlib import Path
+from typing import Callable
 from mkdocs.structure.files import File
 
 try:
@@ -182,11 +183,14 @@ def ensure_nl2br_forms(content: str) -> str:
 
 
 def _preprocess_markdown(
-    md_file_path: Path, roamlinks_in_frontmatter: bool = True
+    md_file_path: Path,
+    roamlinks_in_frontmatter: bool = True,
+    preprocess: Callable[[str], str] = lambda content: content,
 ) -> str:
     with open(md_file_path, "r", encoding="utf-8") as f:
         content = f.read()
 
+    content = preprocess(content)
     content = _strip_turtletranslate_sections(content)
     matches = newline_regex.findall(content)
     for match in matches:
@@ -217,6 +221,7 @@ def mdfile_to_html(
     leading_url: str = "/",
     normalize_urls: bool = False,
     roamlinks_in_frontmatter: bool = True,
+    preprocess: Callable[[str], str] = lambda content: content,
 ) -> str or tuple:
     """Converts a markdown file to a html file."""
     md_file_path, static_folder, assets_folder = _str_to_path_mass_convert(
@@ -226,7 +231,9 @@ def mdfile_to_html(
         File.generated(
             MKDOCS_CONFIG,
             md_file_path.name,
-            content=_preprocess_markdown(md_file_path, roamlinks_in_frontmatter),
+            content=_preprocess_markdown(
+                md_file_path, roamlinks_in_frontmatter, preprocess
+            ),
         ),
         static_folder / assets_folder,
         MKDOCS_CONFIG,
@@ -265,6 +272,7 @@ def mdfile_to_sections(
     normalize_urls: bool = False,
     roamlinks_in_frontmatter: bool = True,
     remove_heading_if_title_matches: bool = False,
+    preprocess: Callable[[str], str] = lambda content: content,
 ) -> dict:
     """Returns a dictionary of HTML content divided into sections.
     {
@@ -291,6 +299,7 @@ def mdfile_to_sections(
         leading_url=leading_url,
         normalize_urls=normalize_urls,
         roamlinks_in_frontmatter=roamlinks_in_frontmatter,
+        preprocess=preprocess,
     )
 
     head_and_body = re.findall(

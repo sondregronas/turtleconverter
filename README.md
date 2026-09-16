@@ -28,7 +28,8 @@ generate_static_files()
 #                    assets_folder: Path = Path('turtleconvert'), include_metadata: bool = False,
 #                    abspath: bool = True, template: Path = 'turtleconvert.html',
 #                    generate_static_files: bool = False, docs_folder: Path = None,
-#                    ignore_glob: tuple[str, ...] = ("*/translations/*",)) -> str or tuple:
+#                    ignore_glob: tuple[str, ...] = ("*/translations/*",),
+#                    preprocess: Callable[[str], str] = lambda content: content) -> str or tuple:
 
 # Converts a markdown file to HTML
 html = mdfile_to_html("test.md")
@@ -45,13 +46,17 @@ html = mdfile_to_html("test.md", docs_folder=Path("my_docs"), ignore_glob=("*/tr
 # Roamlinks inside frontmatter values are also resolved by default, pass roamlinks_in_frontmatter=False to disable:
 html = mdfile_to_html("test.md", docs_folder=Path("my_docs"), roamlinks_in_frontmatter=False)
 
+# preprocess is called with the markdown content, and its return value is converted:
+# Without preprocess, the markdown is unchanged (the default is a no-op callback).
+
 
 # def mdfile_to_sections(md_file_path: Path, static_folder: Path = Path('static'),
 #                        assets_folder: Path = Path('turtleconvert'), remove_heading: bool = True,
 #                        abspath: bool = True, template: Path = 'turtleconvert.html',
 #                        generate_static_files: bool = False, docs_folder: Path = None,
 #                        ignore_glob: tuple[str, ...] = ("*/translations/*",),
-#                        remove_heading_if_title_matches: bool = False) -> dict:
+#                        remove_heading_if_title_matches: bool = False,
+#                        preprocess: Callable[[str], str] = lambda content: content) -> dict:
 
 # Converts a markdown file to sections
 sections = mdfile_to_sections("test.md")
