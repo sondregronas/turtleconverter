@@ -38,8 +38,7 @@ def generate_static_files(
     )
     _build(None, static_folder / assets_folder, MKDOCS_CONFIG, only_static_files=True)
 
-    generated_assets_folder = Path("site/assets")
-
+    generated_assets_folder = Path(__file__).parent / "site" / "assets"
     for filename in [
         "_markdown_exec_ansi.css",
         "_markdown_exec_pyodide.css",
