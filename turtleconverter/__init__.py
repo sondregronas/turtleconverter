@@ -29,77 +29,6 @@ def _str_to_path_mass_convert(list_of_values: list) -> list:
     ]
 
 
-def patch_markdown_exec_pyodide(path: Path) -> None:
-    """Patch Markdown Exec so input() uses the browser prompt."""
-    source = path.read_text(encoding="utf-8")
-
-    old = """async function evaluatePython(pyodide, editor, output, session) {
-    pyodide.setStdout({ batched: (string) => { writeOutput(output, new Option(string).innerHTML); } });
-    let result, code = editor.getValue();
-    clearOutput(output);
-    try {
-        result = await pyodide.runPythonAsync(code, { globals: getSession(session, pyodide) });
-    } catch (error) {
-        writeOutput(output, new Option(error.toString()).innerHTML);
-    }
-    if (result) writeOutput(output, new Option(result).innerHTML);
-    hljs.highlightElement(output);
-}"""
-
-    new = """async function evaluatePython(pyodide, editor, output, session) {
-    pyodide.setStdout({
-        batched: string => {
-            writeOutput(output, new Option(string).innerHTML);
-        }
-    });
-
-    const code = `
-from js import prompt
-import builtins
-
-def input(p=""):
-    answer = prompt(p)
-    print(p + answer)
-    return answer
-
-builtins.input = input
-
-${editor.getValue()}
-`;
-
-    clearOutput(output);
-
-    try {
-        const result = await pyodide.runPythonAsync(code, {
-            globals: getSession(session, pyodide)
-        });
-
-        if (result)
-            writeOutput(output, new Option(result).innerHTML);
-    } catch (error) {
-        writeOutput(output, new Option(error.toString()).innerHTML);
-    }
-    output.className = "language-plaintext";
-    hljs.highlightElement(output);
-}"""
-
-    if old not in source:
-        raise RuntimeError(
-            f"Could not find evaluatePython() in {path}. "
-            "The Markdown Exec generated JS may have changed."
-        )
-
-    path.write_text(source.replace(old, new, 1), encoding="utf-8")
-
-    if old not in source:
-        raise RuntimeError(
-            f"Could not find evaluatePython() in {path}. "
-            "The Markdown Exec generated JS may have changed."
-        )
-
-    path.write_text(source.replace(old, new, 1), encoding="utf-8")
-
-
 def generate_static_files(
     static_folder: Path = Path("static"), assets_folder: Path = Path("turtleconvert")
 ) -> None:
@@ -110,18 +39,24 @@ def generate_static_files(
     _build(None, static_folder / assets_folder, MKDOCS_CONFIG, only_static_files=True)
 
     generated_assets_folder = Path(__file__).parent / "site" / "assets"
+    # Delete / move the _markdown_exec_* files to the correct folder
+    Path(generated_assets_folder / "_markdown_exec_pyodide.js").unlink(missing_ok=True)
     for filename in [
         "_markdown_exec_ansi.css",
         "_markdown_exec_pyodide.css",
-        "_markdown_exec_pyodide.js",
     ]:
         source = generated_assets_folder / filename
         destination = static_folder / assets_folder / filename
         if source.exists():
             source.replace(destination)
-    patch_markdown_exec_pyodide(
-        static_folder / assets_folder / "_markdown_exec_pyodide.js"
-    )
+
+    # Override the _markdown_exec_pyodide.js file with our own version
+    source = Path(__file__).parent / "overrides" / "_markdown_exec_pyodide.js"
+    destination = static_folder / assets_folder / "_markdown_exec_pyodide.js"
+    if source.exists():
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_text(source.read_text(encoding="utf-8"), encoding="utf-8")
+
     # Cleanup
     [
         p.rmdir()

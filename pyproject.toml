@@ -4,11 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "turtleconverter"
-version = "1.10.4"
+version = "1.10.5"
 keywords = ["markdown", "mkdocs", "html", "converter", "jinja2"]
 description = "A slow and inefficient markdown to html converter using mkdocs"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 authors = [{ name = "Sondre Grønås" }]
 classifiers = [
     "Programming Language :: Python",
@@ -24,7 +24,7 @@ dependencies = [
     "mkdocs-glightbox",
     "mkdocs-roamlinks-plugin",
     "mkdocs-video",
-    "markdown-exec[ansi]",
+    "markdown-exec[ansi]==1.12.3",
     "mdx-breakless-lists@git+https://github.com/sondregronas/mdx-breakless-lists@master",
     "md-img-syntax-converter@git+https://github.com/sondregronas/mkdocs-md-img-syntax-converter@main",
 ]
