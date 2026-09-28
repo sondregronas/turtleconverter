@@ -148,6 +148,12 @@ External images however will work just fine:
 
 `![External image](https://placehold.co/600x400)`
 
+## Codeblocks
+
+```python exec="on"
+print("Hello, World!")
+```
+
 ## Where can I get this markdown to HTML converter?
 
 See the [GitHub page](https://github.com/sondregronas/turtleconverter) for more information.

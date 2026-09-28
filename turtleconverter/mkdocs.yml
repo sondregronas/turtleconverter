@@ -28,7 +28,7 @@ markdown_extensions:
       clickable_checkbox: true      # Allow users to toggle task list items in generated HTML
 
   # Code highlighting
-  - pymdownx.superfences:       # Code higlighting ```language\n code\n ```
+  - pymdownx.superfences: # Code higlighting ```language\n code\n ```
       custom_fences:
         - name: mermaid
           class: mermaid
@@ -50,7 +50,7 @@ markdown_extensions:
   - pymdownx.tilde              # ~~strikethrough~~, ~subscript~ (~2~OH)
   - pymdownx.mark               # ==mark text== (yellow marker)
   - pymdownx.betterem: # **bold** *italic*, __bold__ _italic_
-      smart_enable: [underscore, asterisk] # Both modifiers (* and _)
+      smart_enable: [ underscore, asterisk ] # Both modifiers (* and _)
 
   # Extra
   - pymdownx.keys               # ++ctrl+alt+delete++
@@ -70,6 +70,7 @@ plugins:
   - md-img-syntax-converter
   - roamlinks
   - mkdocs-video
+  - markdown-exec
 
 extra_javascript:
   - assets/javascripts/mathjax.js
