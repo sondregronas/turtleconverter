@@ -150,7 +150,7 @@ External images however will work just fine:
 
 ## Codeblocks
 
-```python exec="on"
+```pyodide
 print("Hello, World!")
 ```
 
