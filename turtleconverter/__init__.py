@@ -38,6 +38,24 @@ def generate_static_files(
     )
     _build(None, static_folder / assets_folder, MKDOCS_CONFIG, only_static_files=True)
 
+    generated_assets_folder = Path("site/assets")
+
+    for filename in [
+        "_markdown_exec_ansi.css",
+        "_markdown_exec_pyodide.css",
+        "_markdown_exec_pyodide.js",
+    ]:
+        source = generated_assets_folder / filename
+        destination = static_folder / assets_folder / filename
+        if source.exists():
+            source.replace(destination)
+    # Cleanup
+    [
+        p.rmdir()
+        for p in [generated_assets_folder, Path("site")]
+        if p.exists() and not any(p.iterdir())
+    ]
+
 
 # If we only have a single newline after ``` or |, add a second \n
 newline_blockers = [r"```"]
@@ -319,7 +337,7 @@ def mdfile_to_sections(
     ):
         body = re.sub(r"<h1.*?\>(.+?)\<\/h1>", "", body, count=1)
 
-    if not "title" in meta:
+    if "title" not in meta:
         meta["title"] = h1_tag
 
     return {"heading": h1_tag, "head": head, "body": body, "meta": meta}

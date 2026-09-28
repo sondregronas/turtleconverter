@@ -151,7 +151,15 @@ External images however will work just fine:
 ## Codeblocks
 
 ```pyodide
-print("Hello, World!")
+print("Hello, World!!!")
+
+# This is a runnable pyodide block
+```
+
+```python
+print("Hello, World!!!")
+
+# This is just a python block
 ```
 
 ## Where can I get this markdown to HTML converter?
