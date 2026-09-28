@@ -151,9 +151,11 @@ External images however will work just fine:
 ## Codeblocks
 
 ```pyodide
-print("Hello, World!!!")
-
 # This is a runnable pyodide block
+
+print("Hello, World!!!")
+name = input("What is your name? ")
+print(f"Hello {name}!")
 ```
 
 ```python
