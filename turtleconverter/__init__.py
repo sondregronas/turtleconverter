@@ -29,6 +29,80 @@ def _str_to_path_mass_convert(list_of_values: list) -> list:
     ]
 
 
+def patch_markdown_exec_pyodide(path: Path) -> None:
+    """Patch Markdown Exec so Python input() shows its prompt and result."""
+    source = path.read_text(encoding="utf-8")
+
+    old = """async function evaluatePython(pyodide, editor, output, session) {
+    pyodide.setStdout({ batched: (string) => { writeOutput(output, new Option(string).innerHTML); } });
+    let result, code = editor.getValue();
+    clearOutput(output);
+    try {
+        result = await pyodide.runPythonAsync(code, { globals: getSession(session, pyodide) });
+    } catch (error) {
+        writeOutput(output, new Option(error.toString()).innerHTML);
+    }
+    if (result) writeOutput(output, new Option(result).innerHTML);
+    hljs.highlightElement(output);
+}"""
+
+    new = """async function evaluatePython(pyodide, editor, output, session) {
+    let stdout = "";
+    let lastInput = null;
+
+    pyodide.setStdout({
+        raw: char => {
+            stdout += String.fromCharCode(char);
+        }
+    });
+
+    pyodide.setStdin({
+        stdin: () => {
+            const newline = stdout.lastIndexOf("\\n");
+            const outputText = newline >= 0 ? stdout.slice(0, newline + 1) : "";
+            const prompt = newline >= 0 ? stdout.slice(newline + 1) : stdout;
+
+            if (outputText)
+                output.innerHTML += new Option(outputText).innerHTML;
+
+            stdout = "";
+
+            lastInput = window.prompt(prompt) ?? "";
+
+            output.innerHTML += new Option(prompt + lastInput + "\\n").innerHTML;
+
+            return lastInput;
+        }
+    });
+
+    clearOutput(output);
+
+    try {
+        const result = await pyodide.runPythonAsync(editor.getValue(), {
+            globals: getSession(session, pyodide)
+        });
+
+        if (stdout)
+            output.innerHTML += new Option(stdout).innerHTML;
+
+        if (result && result !== lastInput)
+            output.innerHTML += new Option(result).innerHTML;
+    } catch (error) {
+        output.innerHTML += new Option(error.toString()).innerHTML;
+    }
+
+    hljs.highlightElement(output);
+}"""
+
+    if old not in source:
+        raise RuntimeError(
+            f"Could not find evaluatePython() in {path}. "
+            "The Markdown Exec generated JS may have changed."
+        )
+
+    path.write_text(source.replace(old, new, 1), encoding="utf-8")
+
+
 def generate_static_files(
     static_folder: Path = Path("static"), assets_folder: Path = Path("turtleconvert")
 ) -> None:
@@ -48,6 +122,9 @@ def generate_static_files(
         destination = static_folder / assets_folder / filename
         if source.exists():
             source.replace(destination)
+    patch_markdown_exec_pyodide(
+        static_folder / assets_folder / "_markdown_exec_pyodide.js"
+    )
     # Cleanup
     [
         p.rmdir()
