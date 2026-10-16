@@ -78,6 +78,7 @@ extra_javascript:
   - assets/javascripts/tex-mml-chtml.js
   - assets/javascripts/katex.min.js
   - assets/javascripts/auto-render.min.js
+  - assets/javascripts/mermaid.min.js
 
 extra_css:
   - assets/stylesheets/katex.min.css
