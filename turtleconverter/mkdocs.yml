@@ -66,6 +66,7 @@ plugins:
       minify_html: true
       minify_js: true
       minify_css: true
+  - excalidraw
   - glightbox
   - md-img-syntax-converter
   - roamlinks
