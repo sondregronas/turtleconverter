@@ -18,14 +18,14 @@ classifiers = [
 ]
 
 dependencies = [
-    "mkdocs-material",
-    "mkdocs-callouts",
-    "mkdocs-minify-plugin",
-    "mkdocs-glightbox",
-    "mkdocs-roamlinks-plugin",
-    "mkdocs-video",
-    "mkdocs-excalidraw",
-    "markdown-exec[ansi]==1.12.3",
+    "markdown-exec[ansi]~=1.12.3",
+    "mkdocs-callouts~=1.17.1",
+    "mkdocs-excalidraw~=0.6.3",
+    "mkdocs-glightbox~=0.5.2",
+    "mkdocs-material~=9.7.7",
+    "mkdocs-minify-plugin~=0.8.0",
+    "mkdocs-roamlinks-plugin~=0.3.2",
+    "mkdocs-video~=1.5.0",
     "mdx-breakless-lists@git+https://github.com/sondregronas/mdx-breakless-lists@master",
     "md-img-syntax-converter@git+https://github.com/sondregronas/mkdocs-md-img-syntax-converter@main",
 ]
