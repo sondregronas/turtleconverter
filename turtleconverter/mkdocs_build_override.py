@@ -89,6 +89,59 @@ def _build_page(
 
 
 # ---------------------------------------------------------------------------
+# Drawio Patch
+# The drawio plugin uses the output directory as the base path for diagrams,
+# which breaks when the source markdown is in a subdirectory. This patch
+# allows the plugin to use the original source directory while rendering
+# diagrams, falling back to the output directory if the diagram is not found
+# in the source.
+# ---------------------------------------------------------------------------
+from mkdocs_drawio.plugin import DrawioPlugin
+
+# Keep the plugin's original methods.
+_original_render_drawio_diagrams = DrawioPlugin.render_drawio_diagrams
+_original_retrieve_mxfile = DrawioPlugin.retrieve_mxfile
+
+_active_drawio_source_dir: Path | None = None
+
+
+def _patched_render_drawio_diagrams(self, output_content, page):
+    """Provide the original Markdown directory while rendering diagrams."""
+    global _active_drawio_source_dir
+
+    previous_source_dir = _active_drawio_source_dir
+    original_source = getattr(page.file, "_original_source_path", None)
+
+    if original_source:
+        _active_drawio_source_dir = Path(original_source).resolve().parent
+
+    try:
+        return _original_render_drawio_diagrams(self, output_content, page)
+    finally:
+        _active_drawio_source_dir = previous_source_dir
+
+
+def _patched_retrieve_mxfile(path: Path, src: str):
+    """Read diagrams from the output directory, falling back to source."""
+    output_file = (path / src).resolve()
+
+    if output_file.is_file():
+        return _original_retrieve_mxfile(path, src)
+
+    if _active_drawio_source_dir is not None:
+        source_file = (_active_drawio_source_dir / src).resolve()
+
+        if source_file.is_file():
+            return _original_retrieve_mxfile(source_file.parent, source_file.name)
+
+    # Preserve the plugin's normal error behavior if neither path exists.
+    return _original_retrieve_mxfile(path, src)
+
+
+DrawioPlugin.render_drawio_diagrams = _patched_render_drawio_diagrams
+DrawioPlugin.retrieve_mxfile = staticmethod(_patched_retrieve_mxfile)
+
+# ---------------------------------------------------------------------------
 # Roamlinks patch
 # Roamlinks walks the filesystem directly (bypasses MkDocs Files), so we
 # redirect its internal os.walk to a filtered version that respects ignore_glob.
@@ -111,7 +164,9 @@ ALLOWED_URL_CHARS_REGEX = _re.compile(r"[a-zA-Z0-9\.\-\_\/æøåÆØÅ]")
 # flow-sequence (since `[[...]]` is valid YAML syntax for "a list containing a list").
 _ROAMLINK_FULL_RE = _re.compile(r"^\s*" + _roam_plugin.ROAMLINK_RE + r"\s*$")
 # Matches the YAML frontmatter block delimited by `---` (or `...`) fences.
-_FRONTMATTER_BLOCK_RE = _re.compile(r"^(---[ \t]*\n)(.*?\n)(?:---|\.\.\.)[ \t]*\n", _re.DOTALL)
+_FRONTMATTER_BLOCK_RE = _re.compile(
+    r"^(---[ \t]*\n)(.*?\n)(?:---|\.\.\.)[ \t]*\n", _re.DOTALL
+)
 # Matches a single `key: value` or `- value` frontmatter line, capturing the value part.
 _FRONTMATTER_LINE_RE = _re.compile(
     r"^(?P<prefix>[ \t]*(?:-[ \t]+|[A-Za-z0-9_-]+:[ \t]*))(?P<value>.+?)[ \t]*$"

@@ -72,6 +72,24 @@ plugins:
   - roamlinks
   - mkdocs-video
   - markdown-exec
+  - drawio:
+      viewer_js: "assets/javascripts/viewer-static.min.js"
+      tooltips: true
+      border: 8
+      edit: true
+      darkmode: true
+      highlight: "#3F51B5"
+      lightbox: true
+      toolbar:
+        pages: false
+        tags: false
+        zoom: false
+        layers: false
+        lightbox: false
+        position: "top"
+        no_hide: false
+        show_title: false
+
 
 extra_javascript:
   - assets/javascripts/mathjax.js

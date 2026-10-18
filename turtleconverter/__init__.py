@@ -253,14 +253,21 @@ def mdfile_to_html(
     md_file_path, static_folder, assets_folder = _str_to_path_mass_convert(
         [md_file_path, static_folder, assets_folder]
     )
-    page, meta = _build(
-        File.generated(
-            MKDOCS_CONFIG,
-            md_file_path.name,
-            content=_preprocess_markdown(
-                md_file_path, roamlinks_in_frontmatter, preprocess
-            ),
+
+    generated_file = File.generated(
+        MKDOCS_CONFIG,
+        md_file_path.name,
+        content=_preprocess_markdown(
+            md_file_path, roamlinks_in_frontmatter, preprocess
         ),
+    )
+
+    # Keep track of the original Markdown file's location.
+    generated_file.src_dir = str(md_file_path.resolve().parent)
+    generated_file._original_source_path = str(md_file_path.resolve())
+
+    page, meta = _build(
+        generated_file,
         static_folder / assets_folder,
         MKDOCS_CONFIG,
         template=template,
@@ -271,6 +278,7 @@ def mdfile_to_html(
         normalize_urls=normalize_urls,
         roamlinks_in_frontmatter=roamlinks_in_frontmatter,
     )
+
     page = page.replace(
         "../assets/",
         {
