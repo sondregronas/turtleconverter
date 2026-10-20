@@ -44,7 +44,7 @@ jobs:
           mkdir -p ./site
           mv ./turtleconverter/static ./site
           mv ./turtleconverter/img.png ./site/static
-          sed -i 's/src="\/img.png"/src="\/turtleconverter\/static\/img.png"/' ./site/static/test.html
+          sed -i 's|src="/img.png"|src="/turtleconverter/static/img.png"|g' ./site/static/test.html
           echo "<meta http-equiv='refresh' content='0; url=static/test.html'>" > ./site/index.html
 
       - name: Upload Pages Artifact
