@@ -3,18 +3,21 @@ This is a messy hack to override the mkdocs build command to convert a single ma
 """
 
 from __future__ import annotations
+
 import fnmatch
 import re
 import types
+from contextlib import contextmanager
+from functools import lru_cache
+from pathlib import Path
 
 import mkdocs.config
 from mkdocs.commands.build import *
 from mkdocs.commands.build import _build_page, _populate_page
-from pathlib import Path
-from contextlib import contextmanager
 
 if not os.path.exists(Path(__file__).parent / "docs"):
     os.makedirs(Path(__file__).parent / "docs")
+
 MKDOCS_CONFIG = mkdocs.config.load_config(str(Path(__file__).parent / "mkdocs.yml"))
 
 # Document variables, these normally get set in the build command.
@@ -42,6 +45,12 @@ class ConversionError(Exception):
         super().__init__(message)
 
 
+@lru_cache(maxsize=128)
+def _compile_custom_template(env: jinja2.Environment, source: str):
+    """Compile a custom template from its source instead of a shared template file."""
+    return env.from_string(source)
+
+
 def _build_page(
     page: Page,
     config: MkDocsConfig,
@@ -57,19 +66,22 @@ def _build_page(
         if template != "turtleconvert.html":
             if not isinstance(template, Path):
                 template = Path(template)
+
             # The path must be absolute from the cwd.
             template_path = template.resolve()
 
-            # Write a file to the overrides folder called "custom_template.html" with the contents of the custom template
-            # this is required because the template must be in the same directory as the mkdocs.yml file :(
-            with open(
-                Path(__file__).parent / "overrides" / "custom_template.html", "w+"
-            ) as f:
-                f.write(template_path.read_text())
+            # Read and compile the custom template directly from its source.
+            # This avoids writing to a shared overrides file, which could be
+            # truncated or read while another thread is writing to it.
+            template_source = template_path.read_text(encoding="utf-8")
 
-            template = env.get_template("custom_template.html")
+            # Detect an empty custom template before attempting to render it.
+            if not template_source.strip():
+                raise ConversionError(f"Custom template is empty: '{template_path}'")
+
+            compiled_template = _compile_custom_template(env, template_source)
         else:
-            template = env.get_template("turtleconvert.html")
+            compiled_template = env.get_template("turtleconvert.html")
 
         # Run `page_context` plugin events.
         context = config.plugins.on_page_context(
@@ -77,15 +89,22 @@ def _build_page(
         )
 
         # Render the template.
-        output = template.render(context)
+        output = compiled_template.render(context)
 
         # Run `post_page` plugin events.
         output = config.plugins.on_post_page(output, page=page, config=config)
 
+        # Detect a completely empty rendered page.
+        if not output.strip():
+            raise ConversionError(
+                f"Template rendering produced empty HTML for "
+                f"'{page.file.src_path}'."
+            )
+
         return output, page.meta
 
     except Exception as e:
-        raise ConversionError(f"{e}")
+        raise ConversionError(f"{e}") from e
 
 
 # ---------------------------------------------------------------------------
@@ -141,6 +160,7 @@ def _patched_retrieve_mxfile(path: Path, src: str):
 DrawioPlugin.render_drawio_diagrams = _patched_render_drawio_diagrams
 DrawioPlugin.retrieve_mxfile = staticmethod(_patched_retrieve_mxfile)
 
+
 # ---------------------------------------------------------------------------
 # Roamlinks patch
 # Roamlinks walks the filesystem directly (bypasses MkDocs Files), so we
@@ -148,6 +168,7 @@ DrawioPlugin.retrieve_mxfile = staticmethod(_patched_retrieve_mxfile)
 # We also patch the replacer classes to produce absolute URLs via leading_url.
 # ---------------------------------------------------------------------------
 import re as _re
+
 import mkdocs_roamlinks_plugin.plugin as _roam_plugin
 
 _real_os_walk = os.walk
@@ -157,16 +178,18 @@ _active_ignore_glob: tuple[str, ...] = ()
 _active_leading_url: str = "/"
 _active_normalize_urls: bool = False
 
-ALLOWED_URL_CHARS_REGEX = _re.compile(r"[a-zA-Z0-9\.\-\_\/æøåÆØÅ]")
+ALLOWED_URL_CHARS_REGEX = _re.compile(r"[a-zA-Z0-9.\-_/æøåÆØÅ]")
 
 # Matches a value that consists solely of a roamlink (e.g. `[[file#title|alias|WxH]]`),
 # used to detect frontmatter values that YAML would otherwise misparse as a nested
 # flow-sequence (since `[[...]]` is valid YAML syntax for "a list containing a list").
 _ROAMLINK_FULL_RE = _re.compile(r"^\s*" + _roam_plugin.ROAMLINK_RE + r"\s*$")
+
 # Matches the YAML frontmatter block delimited by `---` (or `...`) fences.
 _FRONTMATTER_BLOCK_RE = _re.compile(
     r"^(---[ \t]*\n)(.*?\n)(?:---|\.\.\.)[ \t]*\n", _re.DOTALL
 )
+
 # Matches a single `key: value` or `- value` frontmatter line, capturing the value part.
 _FRONTMATTER_LINE_RE = _re.compile(
     r"^(?P<prefix>[ \t]*(?:-[ \t]+|[A-Za-z0-9_-]+:[ \t]*))(?P<value>.+?)[ \t]*$"
@@ -191,11 +214,13 @@ def quote_roamlinks_in_frontmatter(content: str) -> str:
         line_match = _FRONTMATTER_LINE_RE.match(line)
         if not line_match:
             continue
+
         value = line_match.group("value")
         if value.startswith('"') or value.startswith("'"):
             continue
         if not _ROAMLINK_FULL_RE.match(value):
             continue
+
         escaped = value.replace("\\", "\\\\").replace('"', '\\"')
         lines[i] = f'{line_match.group("prefix")}"{escaped}"'
 
@@ -208,6 +233,7 @@ def normalize_url_str(text: str) -> str:
     # If the text has an extension, we dont want to normalize.
     if "." in text and not text.endswith(".html"):
         return text
+
     new_text = text.replace(" ", "_")
     new_text = "".join(c.group() for c in ALLOWED_URL_CHARS_REGEX.finditer(new_text))
     return _re.sub("_+", "_", new_text)
@@ -234,10 +260,13 @@ def _make_absolute(rel_url: str, page_url: str) -> str:
     abs_path = (
         os.path.normpath(os.path.join(page_dir, rel_url)).replace("\\", "/").lstrip("/")
     )
+
     if any([abs_path.endswith(".md"), abs_path.endswith(".markdown")]):
         abs_path = re.sub(r"\.\w+$", "", abs_path)
+
     if _active_normalize_urls:
         abs_path = normalize_url_str(abs_path)
+
     leading = _active_leading_url.rstrip("/")
     return f"{leading}/{abs_path}" if abs_path else f"{leading}/"
 
@@ -248,12 +277,14 @@ def _absolutify_markdown_link(md_link: str, page_url: str) -> str:
     def _fix(m):
         url = m.group(1) if m.group(1) is not None else m.group(2)
         bracketed = m.group(1) is not None
+
         if (
             url.startswith("#")
             or url.startswith("http://")
             or url.startswith("https://")
         ):
             return m.group(0)
+
         abs_url = _make_absolute(url, page_url)
         return f"(<{abs_url}>)" if bracketed else f"({abs_url})"
 
@@ -285,13 +316,16 @@ def _process_meta_roamlinks(value: any, base_docs_url: str, page_url: str) -> an
             value,
         )
         return _to_plain_markdown_link(value)
+
     if isinstance(value, list):
         return [_process_meta_roamlinks(v, base_docs_url, page_url) for v in value]
+
     if isinstance(value, dict):
         return {
             k: _process_meta_roamlinks(v, base_docs_url, page_url)
             for k, v in value.items()
         }
+
     return value
 
 
@@ -339,10 +373,10 @@ def _patch_mermaid_theme(static_folder: Path) -> None:
         "stroke:none}"
     )
     new_rule = (
-        '[id$=\\"-arrowhead\\"] path,[id$=\\"-filled-head\\"] path{'
+        '[id$="-arrowhead"] path,[id$="-filled-head"] path{'
         "fill:var(--md-mermaid-sequence-message-line-color)!important;"
         "stroke:var(--md-mermaid-sequence-message-line-color)!important}"
-        '[id$=\\"-crosshead\\"] path{'
+        '[id$="-crosshead"] path{'
         "stroke:var(--md-mermaid-sequence-message-line-color)!important}"
     )
     stroke_width_rule = (
@@ -353,14 +387,17 @@ def _patch_mermaid_theme(static_folder: Path) -> None:
         "defs #sequencenumber{"
         "fill:var(--md-mermaid-sequence-number-bg-color)!important}"
     )
+
     for bundle in (static_folder / "javascripts").glob("bundle.*.min.js"):
         content = bundle.read_text(encoding="utf-8")
+
         if old_rule not in content:
             if new_rule not in content:
                 raise RuntimeError(f"Mermaid theme rule not found in {bundle}")
             patched_content = content
         else:
             patched_content = content.replace(old_rule, new_rule)
+
         if stroke_width_rule not in patched_content:
             theme_end_start = patched_content.find(theme_end)
             theme_end_marker = '";var '
@@ -368,13 +405,16 @@ def _patch_mermaid_theme(static_folder: Path) -> None:
                 theme_end_marker,
                 theme_end_start + len(theme_end),
             )
+
             if theme_end_start < 0 or theme_end_marker_start < 0:
                 raise RuntimeError(f"Mermaid themeCSS end not found in {bundle}")
+
             patched_content = (
                 patched_content[:theme_end_marker_start]
                 + stroke_width_rule
                 + patched_content[theme_end_marker_start:]
             )
+
         bundle.write_text(patched_content, encoding="utf-8")
 
 
@@ -394,6 +434,7 @@ def _build(
 ) -> tuple[str, dict] or None:
     if docs_folder:
         __config.docs_dir = str(docs_folder.resolve())
+
     try:
         if generate_static_files or only_static_files:
             for file in __files:
@@ -401,8 +442,10 @@ def _build(
                 if file.src_uri == "assets/images/favicon.png":
                     file.inclusion = InclusionLevel.EXCLUDED
                 file.dest_uri = file.dest_uri.replace("assets/", "")
+
             __files.copy_static_files(dirty=False, inclusion=__inclusion)
             _patch_mermaid_theme(static_folder.resolve())
+
         if only_static_files:
             return
 
@@ -420,7 +463,9 @@ def _build(
                 dest_uri=f"{fp.stem}/index.html",
                 inclusion=InclusionLevel.INCLUDED,
             )
+
         file.page = Page(None, file, config)
+
         # Set active ignore patterns so the roamlinks os.walk patch applies.
         global _active_ignore_glob, _active_leading_url, _active_normalize_urls
         _active_ignore_glob = tuple(ignore_glob)
@@ -433,9 +478,10 @@ def _build(
                 file.page.meta = _process_meta_roamlinks(
                     file.page.meta, config.docs_dir, file.page.file.src_path
                 )
+
             return _build_page(
                 file.page, config, [file], __nav, __env, template=template
             )
 
     except Exception as e:
-        raise ConversionError(f"Error building page '{fp}': {e}")
+        raise ConversionError(f"Error building page '{fp}': {e}") from e

@@ -22,6 +22,25 @@ except ImportError:
     )
 
 
+class MarkdownValidationError(ValueError):
+    """Raised when Markdown input fails validation."""
+
+
+def _validate_rendered_html(page: str, md_file_path: Path) -> None:
+    if not isinstance(page, str) or not page.strip():
+        raise ConversionError(f"Conversion produced empty HTML for '{md_file_path}'.")
+
+    if not re.search(r"<head\b[^>]*>.*?</head\s*>", page, re.IGNORECASE | re.DOTALL):
+        raise ConversionError(
+            f"Rendered HTML has no valid head section: '{md_file_path}'."
+        )
+
+    if not re.search(r"<body\b[^>]*>.*?</body\s*>", page, re.IGNORECASE | re.DOTALL):
+        raise ConversionError(
+            f"Rendered HTML has no valid body section: '{md_file_path}'."
+        )
+
+
 def _str_to_path_mass_convert(list_of_values: list) -> list:
     """Converts a list of strings to a list of Path objects."""
     return [
@@ -216,6 +235,11 @@ def _preprocess_markdown(
     with open(md_file_path, "r", encoding="utf-8") as f:
         content = f.read()
 
+    if not content.strip() and md_file_path.stat().st_size != 0:
+        raise MarkdownValidationError(
+            f"Markdown source contains no content: {md_file_path}"
+        )
+
     content = preprocess(content)
     content = _strip_turtletranslate_sections(content)
     matches = newline_regex.findall(content)
@@ -279,6 +303,8 @@ def mdfile_to_html(
         roamlinks_in_frontmatter=roamlinks_in_frontmatter,
     )
 
+    _validate_rendered_html(page, md_file_path)
+
     page = page.replace(
         "../assets/",
         {
@@ -339,6 +365,12 @@ def mdfile_to_sections(
     head_and_body = re.findall(
         r"<head.*?>(.*?)</head>.*?<body.*?>(.*?)</body>", page, re.DOTALL
     )
+
+    if not head_and_body:
+        raise ConversionError(
+            f"Could not extract head and body from rendered HTML for "
+            f"'{md_file_path}'."
+        )
 
     head = head_and_body[0][0]
     body = head_and_body[0][1]
