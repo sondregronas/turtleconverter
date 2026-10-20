@@ -178,7 +178,8 @@ _active_ignore_glob: tuple[str, ...] = ()
 _active_leading_url: str = "/"
 _active_normalize_urls: bool = False
 
-ALLOWED_URL_CHARS_REGEX = _re.compile(r"[a-zA-Z0-9.\-_/æøåÆØÅ]")
+ALLOWED_URL_CHARS_REGEX = _re.compile(r"[a-zA-Z0-9\.\-\_\/æøåÆØÅ]")
+
 
 # Matches a value that consists solely of a roamlink (e.g. `[[file#title|alias|WxH]]`),
 # used to detect frontmatter values that YAML would otherwise misparse as a nested
@@ -373,10 +374,10 @@ def _patch_mermaid_theme(static_folder: Path) -> None:
         "stroke:none}"
     )
     new_rule = (
-        '[id$="-arrowhead"] path,[id$="-filled-head"] path{'
+        '[id$=\\"-arrowhead\\"] path,[id$=\\"-filled-head\\"] path{'
         "fill:var(--md-mermaid-sequence-message-line-color)!important;"
         "stroke:var(--md-mermaid-sequence-message-line-color)!important}"
-        '[id$="-crosshead"] path{'
+        '[id$=\\"-crosshead\\"] path{'
         "stroke:var(--md-mermaid-sequence-message-line-color)!important}"
     )
     stroke_width_rule = (
