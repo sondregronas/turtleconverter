@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "turtleconverter"
-version = "1.12.3"
+version = "1.12.4"
 keywords = ["markdown", "mkdocs", "html", "converter", "jinja2"]
 description = "A slow and inefficient markdown to html converter using mkdocs"
 readme = "README.md"
@@ -21,8 +21,7 @@ dependencies = [
     "markdown-exec[ansi]~=1.12.3",
     "mkdocs-callouts~=1.17.1",
     "mkdocs-excalidraw~=0.6.3",
-    "mkdocs-glightbox~=0.5.2",
-    "selectolax==1.0.0", # Pin selectolax (related to mkdocs-glightbox) to avoid issues with newer versions
+    "mkdocs-glightbox~=0.5.3",
     "mkdocs-material~=9.7.7",
     "mkdocs-minify-plugin~=0.8.0",
     "mkdocs-roamlinks-plugin~=0.3.2",
