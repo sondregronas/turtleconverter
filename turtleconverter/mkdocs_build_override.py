@@ -432,6 +432,7 @@ def _build(
     leading_url: str = "/",
     normalize_urls: bool = False,
     roamlinks_in_frontmatter: bool = True,
+    emojis: dict[str, str | dict] | None = None,
 ) -> tuple[str, dict] or None:
     if docs_folder:
         __config.docs_dir = str(docs_folder.resolve())
@@ -472,6 +473,10 @@ def _build(
         _active_ignore_glob = tuple(ignore_glob)
         _active_leading_url = leading_url
         _active_normalize_urls = normalize_urls
+
+        # Custom :name: emoji, read by turtleconverter.emojis (see mkdocs.yml)
+        emoji_config = config.mdx_configs.setdefault("pymdownx.emoji", {})
+        emoji_config.setdefault("options", {})["custom_emojis"] = dict(emojis or {})
 
         with _patched_roamlinks():
             _populate_page(file.page, config, __files)

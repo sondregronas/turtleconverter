@@ -56,9 +56,9 @@ markdown_extensions:
   - pymdownx.keys               # ++ctrl+alt+delete++
   - pymdownx.smartsymbols       # Convert special characters from markdown ((tm) = ™)
   - smarty                      # '' -> ‘’, "" -> “”, etc..
-  - pymdownx.emoji: # Emojis :smile: :tada:
-      emoji_index: !!python/name:material.extensions.emoji.twemoji
-      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.emoji: # Emojis :smile: :tada:, plus the custom ones passed as `emojis`
+      emoji_index: !!python/name:turtleconverter.emojis.twemoji
+      emoji_generator: !!python/name:turtleconverter.emojis.to_svg
 
 plugins:
   - callouts

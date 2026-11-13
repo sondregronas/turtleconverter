@@ -29,7 +29,8 @@ generate_static_files()
 #                    abspath: bool = True, template: Path = 'turtleconvert.html',
 #                    generate_static_files: bool = False, docs_folder: Path = None,
 #                    ignore_glob: tuple[str, ...] = ("*/translations/*",),
-#                    preprocess: Callable[[str], str] = lambda content: content) -> str or tuple:
+#                    preprocess: Callable[[str], str] = lambda content: content,
+#                    emojis: dict[str, str | dict] | None = None) -> str or tuple:
 
 # Converts a markdown file to HTML
 html = mdfile_to_html("test.md")
@@ -49,6 +50,10 @@ html = mdfile_to_html("test.md", docs_folder=Path("my_docs"), roamlinks_in_front
 # preprocess is called with the markdown content, and its return value is converted:
 # Without preprocess, the markdown is unchanged (the default is a no-op callback).
 
+# Emoji shortcodes (:smile:) use twemoji. Add your own :name: shortcodes as images, given either as an image url
+# or as a dict of <img> attributes (they are left alone inside code, like any other emoji):
+html = mdfile_to_html("test.md", emojis={"party": "/static/party.png", "logo": {"src": "/logo.svg", "alt": "Logo"}})
+
 
 # def mdfile_to_sections(md_file_path: Path, static_folder: Path = Path('static'),
 #                        assets_folder: Path = Path('turtleconvert'), remove_heading: bool = True,
@@ -56,7 +61,8 @@ html = mdfile_to_html("test.md", docs_folder=Path("my_docs"), roamlinks_in_front
 #                        generate_static_files: bool = False, docs_folder: Path = None,
 #                        ignore_glob: tuple[str, ...] = ("*/translations/*",),
 #                        remove_heading_if_title_matches: bool = False,
-#                        preprocess: Callable[[str], str] = lambda content: content) -> dict:
+#                        preprocess: Callable[[str], str] = lambda content: content,
+#                        emojis: dict[str, str | dict] | None = None) -> dict:
 
 # Converts a markdown file to sections
 sections = mdfile_to_sections("test.md")

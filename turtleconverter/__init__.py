@@ -272,6 +272,7 @@ def mdfile_to_html(
     normalize_urls: bool = False,
     roamlinks_in_frontmatter: bool = True,
     preprocess: Callable[[str], str] = lambda content: content,
+    emojis: dict[str, str | dict] | None = None,
 ) -> str or tuple:
     """Converts a markdown file to a html file."""
     md_file_path, static_folder, assets_folder = _str_to_path_mass_convert(
@@ -301,6 +302,7 @@ def mdfile_to_html(
         leading_url=leading_url,
         normalize_urls=normalize_urls,
         roamlinks_in_frontmatter=roamlinks_in_frontmatter,
+        emojis=emojis,
     )
 
     _validate_rendered_html(page, md_file_path)
@@ -333,6 +335,7 @@ def mdfile_to_sections(
     roamlinks_in_frontmatter: bool = True,
     remove_heading_if_title_matches: bool = False,
     preprocess: Callable[[str], str] = lambda content: content,
+    emojis: dict[str, str | dict] | None = None,
 ) -> dict:
     """Returns a dictionary of HTML content divided into sections.
     {
@@ -360,6 +363,7 @@ def mdfile_to_sections(
         normalize_urls=normalize_urls,
         roamlinks_in_frontmatter=roamlinks_in_frontmatter,
         preprocess=preprocess,
+        emojis=emojis,
     )
 
     head_and_body = re.findall(
